@@ -2,18 +2,64 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>MENU</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<title>GPU.js Menu</title>
+		<meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
 		<link rel="icon" href="menu/res/images/favicon.ico" type="image/x-icon" />
 
+		<link rel="stylesheet" href="common/css/normalize.min.css">
+        <link rel="stylesheet" href="common/css/main.css">
+
+		<script src="common/thirdparty/modernizr-2.8.3.min.js"></script>
 	</head>
 	<body>
 
-		<a href="filters">Filters</a><br>
-		<a href="particles">Particles</a><br>
-		<a href="rest">Rest</a><br>
+	    <div class="header-container">
+            <header class="wrapper clearfix">
+                <h1 class="title">GPU.js</h1>
+                <nav>
+                    <ul>
+                        <li><a href="filters">filters</a></li>
+                        <li><a href="particles">Particles</a></li>
+                        <li><a href="rest">Rest</a></li>
+                    </ul>
+                </nav>
+            </header>
+        </div>
 
-		Hello World!
+        <div class="main-container">
+
+            <div class="main wrapper clearfix">
+            	<h2> A JavaScript GPU acceleration library</h2>
+				Hello World!
+
+            </div> <!-- #main -->
+        </div> <!-- #main-container -->
+
+        <div class="footer-container">
+            <footer class="wrapper">
+                <h3>Scott McGowan and Logan Barnes</h3>
+				<h4>A <a href="http://hackarizona.org">Hack Arizona</a> project.</h4>
+            </footer>
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
+
+        <script src="js/plugins.js"></script>
+        <script src="js/main.js"></script>
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X','auto');ga('send','pageview');
+        </script>
 
 	</body>
 </html>
