@@ -154,19 +154,27 @@ nav a:hover {
    Author's custom styles
    ========================================================================== */
 
+.left {
+    display: inline-block;
+    float: left;
+    width: 48%;
+    margin: 0 0;
+    border: 2px solid black;
+}
 
+.right {
+    display: inline-block;
+    float: right;
+    width: 48%;
+    margin: 0 0;
+    border: 2px solid black;
+}
 
-
-
-
-
-
-
-
-
-
-
-
+textarea {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
 
 /* ==========================================================================
    Media Queries

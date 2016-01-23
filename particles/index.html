@@ -12,8 +12,10 @@
 
         <link rel="stylesheet" href="/gpu.js/common/css/normalize.min.css">
         <link rel="stylesheet" href="/gpu.js/common/css/main.css">
+        <link rel="stylesheet" href="css/particles.css">
 
         <script src="/gpu.js/common/thirdparty/modernizr-2.8.3.min.js"></script>
+        <script src="js/main.js"></script>
     </head>
     <body>
 
@@ -32,9 +34,28 @@
 
         <div class="main-container">
 
-            <div class="main wrapper clearfix">
-                <h2>Particles Page</h2>
+            <div class="main wrapper clearfix container">
 
+                <h2>Particles Page</h2>
+                <!-- Canvas for three.js -->
+                <div class="left" id="canvas-container">
+                    <h3>Output</h3>
+                    <canvas id="particles-canvas">
+                    </canvas>
+                </div>
+
+                <!-- User input section -->
+                <div class="right" id="textarea-container">
+                    <h3>Enter Code Here</h2>
+                    uneditable code goes here
+                    <!-- Text area for user input of code -->
+                    <div>
+                        <textarea id="particles-textarea">
+                            
+                        </textarea>
+                    </div>
+                    uneditable code goes here
+                </div>
             </div> <!-- #main -->
         </div> <!-- #main-container -->
 

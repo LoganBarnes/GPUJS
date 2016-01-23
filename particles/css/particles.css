@@ -1,0 +1,11 @@
+#particles-textarea {
+    /*border: 2px solid black;*/
+}
+
+#particles-canvas {
+    border: 2px solid black;
+}
+
+#canvas-container #textarea-container {
+    resize: both;
+}
