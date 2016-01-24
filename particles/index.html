@@ -15,6 +15,7 @@
         <link rel="stylesheet" href="css/particles.css">
 
         <script src="/gpu.js/common/thirdparty/modernizr-2.8.3.min.js"></script>
+        <script type="text/javascript" src="/gpu.js/common/thirdparty/jquery.min.js"></script>
         <script src="js/main.js"></script>
     </head>
     <body>
@@ -49,18 +50,26 @@
 
                 <!-- User input section -->
                 <div class="right" id="editor-container">
-                    <h3>Enter Code Here</h3>
+                    
+                    <h3 class="inline">Enter Code Here</h3>
+
+                    <div class="inline float-right">
+                        <button id="reset-button">Reset</button>
+                        <button id="submit-button">Submit</button>
+                    </div>
+
                     <!-- uneditable code goes here -->
 
                     <!-- Text editor for user input of code -->
                     <pre id="particles-editor">function foo(items) {
                         var i;
                         for (i = 0; i &lt; items.length; i++) {
-                            alert("w00t! " + items[i]);
+                            alert("w00t!" + items[i]);
                         }
                     }</pre>
 
                     <!-- uneditable code goes here -->
+
                 </div>
 
                 </section>
@@ -97,7 +106,6 @@
                 function() {
                     main();
             });
-
         </script>
 
     </body>
