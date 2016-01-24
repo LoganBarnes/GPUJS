@@ -259,7 +259,7 @@ ParticlesClass.prototype.handleKeyDown = function(keyEvent) {
 			break;
 		case 32: // space
 			this.spaceDown = true;
-			keyEvent.preventDefault();
+			// keyEvent.preventDefault();
 			break;
 		default:
 			// console.log(keyEvent.keyCode);
