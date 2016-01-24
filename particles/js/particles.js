@@ -14,21 +14,66 @@
 */
 
 
-var ParticlesClass = function (solverShader, renderShader, canvasId) {
+var ParticlesClass = function (canvasId) {
 
 	/*
  	 * GPU SOLVER CODE
  	 */
 
  	// create the GPU solver
- 	var canvas = document.getElementById("particles-canvas");
-	this.gpuSolver = new GPU(canvas.width, canvas.height, canvasId); 
+ 	this.canvas = document.getElementById("particles-canvas");
+	this.gpuSolver = new GPU(this.canvas.width, this.canvas.height, canvasId);
 
+	this.canvasId = canvasId;
+	this.oldDeltaTime = 0.02;
+
+	// camera and mouse functionality
+	this.anglePhi = 90;
+	this.angleTheta = 0;
+	this.zoomZ = 10;
+
+	this.lastMouseX;
+	this.lastMouseY;
+
+	this.spaceDown;
+	this.moveCamera;
+	this.mouseDown;
+	
+	// mouse event listeners
+	this.canvas.onmousedown = this.handleMouseDown.bind(this);
+	document.onmouseup = this.handleMouseUp.bind(this);
+	document.onmousemove = this.handleMouseMove.bind(this);
+	this.canvas.onwheel = this.handleMouseWheel.bind(this);
+
+	// key event listeners
+	document.onkeydown = this.handleKeyDown.bind(this);
+	document.onkeyup = this.handleKeyUp.bind(this);
+
+	this.paused = false;
+	this.lastTime = new Date().getTime() - 20;
+}
+
+
+/*
+                                                    
+ 8 8888   b.             8  8 8888 8888888 8888888888 
+ 8 8888   888o.          8  8 8888       8 8888       
+ 8 8888   Y88888o.       8  8 8888       8 8888       
+ 8 8888   .`Y888888o.    8  8 8888       8 8888       
+ 8 8888   8o. `Y888888o. 8  8 8888       8 8888       
+ 8 8888   8`Y8o. `Y88888o8  8 8888       8 8888       
+ 8 8888   8   `Y8o. `Y8888  8 8888       8 8888       
+ 8 8888   8      `Y8o. `Y8  8 8888       8 8888       
+ 8 8888   8         `Y8o.`  8 8888       8 8888       
+ 8 8888   8            `Yo  8 8888       8 8888       
+*/
+
+ParticlesClass.prototype.init = function(renderShader) {
+	
 	var numParticles = 1000;
 	this.oldDeltaTime = 0.02;
 	var radius = 2.5;
-	// var velocity = 5.0;
-	var velocity = 2.5;
+	var velocity = 3;
 
 	var dist = velocity * this.oldDeltaTime;
 
@@ -49,7 +94,6 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 		currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist * 2 - dist;
 		currInitialArray[index+3] = 1.0;
 	}
-
 	
 	this.gpuSolver.addInitialPass("solver", {
 		texData: [ {
@@ -60,12 +104,8 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 			texInput: prevInitialArray,
 			inputType: InputType.ROTATING
 		} ],
-	// } ],
-		fvars: [this.oldDeltaTime, this.oldDeltaTime],
-		shader: solverShader
+		fvars: [this.oldDeltaTime, this.oldDeltaTime]
 	});
-
-	// console.log(this.gpuSolver.passes["solver"]);
 
 	/*
 	 * GPU SOLVER METHODS TO INTEGRATE WITH RENDERING
@@ -74,7 +114,7 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	// get the canvas element and append it if necessary 
 	this.canvas = this.gpuSolver.getCanvas();
 
-	if ( canvasId === undefined )
+	if ( this.canvasId === undefined )
 		document.body.appendChild( this.canvas );
 
 	// get the WebGLRenderer object
@@ -85,8 +125,6 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	var passWidth = this.gpuSolver.getSolverResultWidth("solver");
 	var passHeight = this.gpuSolver.getSolverResultHeight("solver");
 	var passSize = this.gpuSolver.getSolverResultSize("solver");
-
-	// console.log(passWidth + ", " + passHeight + " : " + passSize);
 
 
 	/*
@@ -144,34 +182,51 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 		particlesClass.rendererLoaded = true;
 
 		particlesClass.resize();
-
-		// console.log(particlesClass.renderPoints);
 	});
+}
 
-	// camera and mouse functionality
-	this.anglePhi = 90;
-	this.angleTheta = 0;
-	this.zoomZ = 10;
+ParticlesClass.prototype.reset = function() {
+	var numParticles = 1000;
+	this.oldDeltaTime = 0.02;
+	var radius = 2.5;
+	var velocity = 3;
 
-	this.lastMouseX;
-	this.lastMouseY;
+	var dist = velocity * this.oldDeltaTime;
 
-	this.spaceDown;
-	this.moveCamera;
-	this.mouseDown;
+	var prevInitialArray = new Float32Array(numParticles * 4);
+	for (var i = 0; i < numParticles; ++i) {
+		var index = i * 4;
+		prevInitialArray[index  ] = Math.random() * radius * 2.0 - radius;
+		prevInitialArray[index+1] = Math.random() * radius * 2.0 - radius;
+		prevInitialArray[index+2] = Math.random() * radius * 2.0 - radius;
+		prevInitialArray[index+3] = 1.0;
+	}
+
+	var currInitialArray = new Float32Array(numParticles * 4);
+	for (var i = 0; i < numParticles; ++i) {
+		var index = i * 4;
+		currInitialArray[index  ] = prevInitialArray[index  ] + Math.random() * dist * 2 - dist;
+		currInitialArray[index+1] = prevInitialArray[index+1] + Math.random() * dist * 2 - dist;
+		currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist * 2 - dist;
+		currInitialArray[index+3] = 1.0;
+	}
 	
-	// mouse event listeners
-	this.canvas.onmousedown = this.handleMouseDown.bind(this);
-	document.onmouseup = this.handleMouseUp.bind(this);
-	document.onmousemove = this.handleMouseMove.bind(this);
-	this.canvas.onwheel = this.handleMouseWheel.bind(this);
+	this.gpuSolver.resetPass("solver", {
+		texData: [ {
+			texInput: currInitialArray,
+			inputType: InputType.ROTATING
+		},
+		{
+			texInput: prevInitialArray,
+			inputType: InputType.ROTATING
+		} ],
+		fvars: [this.oldDeltaTime, this.oldDeltaTime]
+	});
+}
 
-	// key event listeners
-	document.onkeydown = this.handleKeyDown.bind(this);
-	document.onkeyup = this.handleKeyUp.bind(this);
 
-	this.paused = false;
-	this.lastTime = new Date().getTime() - 20;
+ParticlesClass.prototype.setShader = function(text) {
+	this.gpuSolver.compileShaderText("solver", 0, text);
 }
 
 

@@ -1,4 +1,64 @@
 
+var vertString = " \
+precision highp float; \
+precision highp int; \
+ \
+void main(void) { \
+	gl_Position = vec4(position.xy, 0.0, 1.0); \
+} \
+";
+
+var fragTopString = " \
+/* input data and dimensions */ \
+uniform sampler2D textures[ numTex ]; \
+uniform ivec3 texDims[ numTex ]; \
+ \
+/* output dimensions */ \
+uniform ivec3 outputDim; \
+ \
+/* constant input variables (like time, scale, etc.) */ \
+uniform float fvars[ numVars ]; \
+ \
+/* used to flip images over the vertical axis */ \
+uniform bool swapX; \
+ \
+ \
+vec4 user_FunctionMain(in int _x, in int _y, in int _index) \
+{ \
+	vec4 data = vec4(0.0); \
+	/* start user code */; \
+";
+
+
+var fragBottomString = " \
+	/* end user code */ \
+	return vec4(data); \
+} \
+ \
+ \
+void main(void) \
+{ \
+	/* 2D indices of current thread */ \
+	int threadX = int(floor(gl_FragCoord.x)); \
+	int threadY = int(floor(gl_FragCoord.y)); \
+ \
+	/* 1D index of current thread */ \
+	int threadId = threadY * outputDim.x + threadX; \
+ \
+	/* initialize output to zero */ \
+	gl_FragColor = vec4(0.0); \
+ \
+	/* mostly for video input */ \
+	if (swapX) \
+		threadX = (outputDim.x - threadX) - 1; \
+ \
+	/* bound check then execute user code */ \
+	if (threadX < outputDim.x && threadY < outputDim.y && threadId < outputDim.z) \
+		gl_FragColor = user_FunctionMain(threadX, threadY, threadId); \
+} \
+";
+
+
 /**
  *  Finds the next biggest power of 2 greater than or equal to x
  */
@@ -28,7 +88,7 @@ var InputType = Object.freeze({
 var GPU = function(width, height, canvasId) {
 
 	// shader program; primitive shape; cubemap/skybox setup
-	this.SolverPass = makeStruct("scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded nextPass");
+	this.SolverPass = makeStruct("scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded swapX nextPass");
 
 	// stores solver 'passes'
 	this.passes = {};
@@ -109,10 +169,6 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 	var outputSize = outputWidth * outputHeight;
 	if (passData.texData[0].elements !== undefined)
 		outputSize = passData.texData[0].elements;
-
-	var shader = libLocation + "shaders/default.frag";
-	if (passData.shader !== undefined)
-		shader = passData.shader;
 
 	var dataRTs = new Array(passData.texData.length);
 	var textures = new Array(passData.texData.length);
@@ -242,7 +298,11 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 
 	var resultDim = [ outputWidth, outputHeight, outputWidth * outputHeight ];
 
-	// "scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded nextPass"
+	var swapX = false;
+	if (passData.swapX !== undefined)
+		swapX = passData.swapX;
+
+	// "scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded swapX nextPass"
 	var solverPass = new this.SolverPass(
 		new THREE.Scene(),
 		null,		// mesh (set in async method)
@@ -253,47 +313,11 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 		resultDim,
 		(passData.fvars !== undefined ? passData.fvars : []),
 		false,		// loaded
+		swapX,
 		null);      // next pass
 
 
 	this.passes[passName] = solverPass;
-
-	var swapX = false;
-	if (passData.swapX !== undefined)
-		swapX = passData.swapX;
-
-	// for use in async method
-	var gpuLib = this;
-
-	loadFiles([libLocation + "shaders/solver.vert", shader], function (shaderText) {
-	
-		var uniforms = {
-				textures: { type: "tv", value: solverPass.textures },
-				texDims: { type: "iv", value: solverPass.dataDims },
-				outputDim: { type: "iv", value: solverPass.resultDim },
-				fvars: { type: "1fv", value: solverPass.fvars }, // gets reset
-				swapX: { type: "i", value: swapX }
-			}
-
-		// create sovler program
-		solverPass.mesh = new THREE.Mesh(
-
-			new THREE.PlaneGeometry( 2.01, 2.01, 1 ), 
-
-			new THREE.ShaderMaterial( {
-
-				uniforms: uniforms,
-				vertexShader: shaderText[0],
-				fragmentShader: shaderText[1]
-			} )
-			// new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
-		);
-
-		solverPass.scene.add( solverPass.mesh );
-
-		solverPass.loaded = true;
-		console.log("added pass '" + passName + "'");
-	});
 };
 
 
@@ -462,6 +486,234 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 		console.log("added connection to '" + passName + "' (total: " + (numPasses+1) + ")");
 	});
 }
+
+
+
+
+/**
+ *  
+ *  passData = {
+ *  	texInput (image, required),
+ * 		prevImgVid (image data),
+ *      fvars (float array),
+ *  	shader (filepath),
+ * 		swapX (webcam textures)
+ *  }
+ *   ^ not correct. will update later.
+ */
+GPU.prototype.resetPass = function(passName, passData) {
+
+	if (passData.texData === undefined) {
+		console.error("'texData' must be defined");
+		return;
+	}
+	if (passData.texData[0].texInput === undefined || passData.texData[0].texInput === null) {
+		console.error("the first texInput of 'texData' must be defined");
+		return;
+	}
+
+	if (!this.checkPassExists(passName)) {
+		console.error("Pass: '" + passName + "' does not exist");
+		return;
+	}
+
+	var solverPass = this.getPass(passName, 0);
+
+	// set these dynamically based on input image
+	solverPass.resultDim[0] = 0;
+	solverPass.resultDim[1] = 0;
+	if (passData.outputWidth)
+		solverPass.resultDim[0] = passData.outputWidth;
+	else if (passData.texData[0].texInput.width !== undefined)
+		solverPass.resultDim[0] = passData.texData[0].texInput.width;
+
+	if (passData.outputHeight)
+		solverPass.resultDim[1] = passData.outputHeight;
+	else if (passData.texData[0].texInput.height !== undefined)
+		solverPass.resultDim[1] = passData.texData[0].texInput.height;
+
+	solverPass.resultDim[2] = solverPass.resultDim[0] * solverPass.resultDim[1];
+	if (passData.texData[0].elements !== undefined)
+		solverPass.resultDim[2] = passData.texData[0].elements;
+
+	solverPass.dataRTs = new Array(passData.texData.length);
+	solverPass.textures = new Array(passData.texData.length);
+	solverPass.dataDims = new Array(passData.texData.length * 3);
+
+	for (var i = 0; i < passData.texData.length; i++) {
+		var texData = passData.texData[i];
+		var texInput = texData.texInput;
+
+		var flipY = false;
+		if (texData.flipY !== undefined)
+			flipY = texData.flipY;
+
+		var w = 0;
+		var h = 0;
+
+		if (texData.width !== undefined)
+			w = texData.width;
+		else if (texInput.width !== undefined)
+			w = texInput.width;
+
+		if (texData.height !== undefined)
+			h = texData.height;
+		else if (texInput.height !== undefined)
+			h = texInput.width;
+
+		var size = w * h;
+		if (texData.elements !== undefined)
+			size = elements;
+		
+		if (texInput) {
+
+			var texture;
+			switch (texData.inputType) {
+
+			case InputType.TEXTURE:
+				texture = texInput;
+				break;
+			case InputType.IMG_VID:
+				texture = new THREE.Texture( texInput );
+				break;
+			case InputType.ARRAY:
+				if (!w || !h) {
+					w = next_pow2(Math.sqrt(texInput.length / 4));
+					h = w;
+					size = texInput.length / 4;
+
+					if (!solverPass.resultDim[0] || !solverPass.resultDim[1]) {
+						solverPass.resultDim[0] = w;
+						solverPass.resultDim[1] = h;
+						solverPass.resultDim[2] = size;
+					}
+				}
+
+				var dataSize = w * h * 4;
+				if (dataSize > texInput.length) {
+					var padArray = new Float32Array(w * h * 4);
+					padArray.set(texInput);
+					texture = new THREE.DataTexture(padArray, w, h, THREE.RGBAFormat, THREE.FloatType );
+				} else {
+					texture = new THREE.DataTexture(texInput, w, h, THREE.RGBAFormat, THREE.FloatType );
+				}
+
+				break;
+			case InputType.ROTATING:
+				if (!w || !h) {
+					w = next_pow2(Math.sqrt(texInput.length / 4));
+					h = w;
+					size = texInput.length / 4;
+
+					if (!solverPass.resultDim[0] || !solverPass.resultDim[1]) {
+						solverPass.resultDim[0] = w;
+						solverPass.resultDim[1] = h;
+						solverPass.resultDim[2] = size;
+					}
+				}
+
+				var dataRT = new THREE.WebGLRenderTarget( solverPass.resultDim[0], solverPass.resultDim[1] );
+				dataRT.texture.dispose();
+
+				var dataSize = w * h * 4;
+				if (dataSize > texInput.length) {
+					var padArray = new Float32Array(w * h * 4);
+					padArray.set(texInput);
+					dataRT.texture = new THREE.DataTexture(padArray, w, h, THREE.RGBAFormat, THREE.FloatType );
+				} else {
+					dataRT.texture = new THREE.DataTexture(texInput, w, h, THREE.RGBAFormat, THREE.FloatType );
+				}
+				texture = dataRT.texture;
+				solverPass.dataRTs[i] = dataRT;
+
+				break;
+			default:
+				console.error("inputType: '" + texData.inputType + "' is not valid");
+				return;
+			}
+
+			
+			if (texData.linear !== undefined && texData.linear === true) {
+				texture.magFilter = THREE.LinearFilter;
+				texture.minFilter = THREE.LinearFilter;
+			} else {
+				texture.magFilter = THREE.NearestFilter;
+				texture.minFilter = THREE.NearestFilter;
+			}
+			texture.wrapT = THREE.ClampToEdgeWrapping;
+			texture.wrapS = THREE.ClampToEdgeWrapping;
+			texture.generateMipmaps = false;
+
+			texture.flipY = flipY;
+			texture.needsUpdate = true;
+
+			solverPass.textures[i] = texture;
+		}
+
+		solverPass.dataDims[i*3  ] = w;
+		solverPass.dataDims[i*3+1] = h;
+		solverPass.dataDims[i*3+2] = size;
+
+	}
+	
+	solverPass.resultRT = new THREE.WebGLRenderTarget(solverPass.resultDim[0], solverPass.resultDim[1] );
+	solverPass.resultRT.texture.dispose();
+	solverPass.resultRT.texture = new THREE.DataTexture(null, solverPass.resultDim[0], solverPass.resultDim[1], THREE.RGBAFormat, THREE.FloatType );
+	solverPass.resultRT.texture.magFilter = THREE.NearestFilter;
+	solverPass.resultRT.texture.minFilter = THREE.NearestFilter;
+
+	solverPass.resultDim[2] = solverPass.resultDim[0] * solverPass.resultDim[1];
+
+	solverPass.swapX = false;
+	if (passData.swapX !== undefined)
+		solverPass.swapX = passData.swapX;
+};
+
+
+GPU.prototype.compileShaderText = function(passName, passNum, text) {
+	if (this.checkPassExists(passName)) {
+		var solverPass = this.getPass(passName, passNum);
+		var scene = solverPass.scene;
+		
+		// clear scene
+		for(var i = scene.children.length-1; i >= 0; i--){
+			scene.remove(scene.children[i]);
+		}
+
+	
+		var uniforms = {
+				textures: { type: "tv", value: solverPass.textures },
+				texDims: { type: "iv", value: solverPass.dataDims },
+				outputDim: { type: "iv", value: solverPass.resultDim },
+				fvars: { type: "1fv", value: solverPass.fvars }, // gets reset
+				swapX: { type: "i", value: solverPass.swapX }
+			}
+
+		var shaderText =  "const int numTex = " + solverPass.textures.length + ";\n"
+						+ "const int numVars = " + solverPass.fvars.length + ";\n"
+						+ fragTopString + text + fragBottomString;
+
+		// create sovler program
+		solverPass.mesh = new THREE.Mesh(
+
+			new THREE.PlaneGeometry( 2.01, 2.01, 1 ), 
+
+			new THREE.ShaderMaterial( {
+
+				uniforms: uniforms,
+				vertexShader: vertString,
+				fragmentShader: shaderText
+			} )
+			// new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
+		);
+
+		solverPass.scene.add( solverPass.mesh );
+
+		solverPass.loaded = true;
+		console.log("added pass '" + passName + "'");
+
+	}
+};
 
 
 /**
