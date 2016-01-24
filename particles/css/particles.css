@@ -1,11 +1,22 @@
 #particles-textarea {
     /*border: 2px solid black;*/
+    width: 95%;
+    min-height: 200px;
 }
 
 #particles-canvas {
     border: 2px solid black;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+    /*width: 100%;*/
+    /*height: 100%;*/
+    width: 600px;
+    height: 600px;
 }
 
-#canvas-container #textarea-container {
-    resize: both;
+#canvas-container, #textarea-container {
+    /*resize: vertical;*/
+    /*overflow: auto;*/
 }
+

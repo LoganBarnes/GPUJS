@@ -153,27 +153,50 @@ nav a:hover {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
-
+/*
 .left {
     display: inline-block;
     float: left;
-    width: 48%;
+    min-width: 48%;
     margin: 0 0;
+    overflow: auto;
     border: 2px solid black;
 }
 
 .right {
     display: inline-block;
     float: right;
-    width: 48%;
+    min-width: 48%;
     margin: 0 0;
+    overflow: auto;
     border: 2px solid black;
-}
+}*/
 
 textarea {
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+section {
+    width: 100%;
+    display: flex;
+}
+
+div.left, div.right {
+    outline: solid 2px #ccc;
+    overflow: auto;
+    padding: 10px;
+}
+
+div.left {
+    /*width: 60%;*/
+    min-width: 40%;
+    resize: both;
+}
+
+div.right {
+    flex: 1 1 0;
 }
 
 /* ==========================================================================
