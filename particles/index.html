@@ -48,21 +48,25 @@
                 </div>
 
                 <!-- User input section -->
-                <div class="right" id="textarea-container">
+                <div class="right" id="editor-container">
                     <h3>Enter Code Here</h3>
-                    uneditable code goes here
-                    <!-- Text area for user input of code -->
-                    <div>
-                        <textarea id="particles-textarea">
-                            
-                        </textarea>
-                    </div>
-                    uneditable code goes here
+                    <!-- uneditable code goes here -->
+
+                    <!-- Text editor for user input of code -->
+                    <pre id="particles-editor">function foo(items) {
+                        var i;
+                        for (i = 0; i &lt; items.length; i++) {
+                            alert("w00t! " + items[i]);
+                        }
+                    }</pre>
+
+                    <!-- uneditable code goes here -->
                 </div>
 
                 </section>
                 
             </div> <!-- #main -->
+
         </div> <!-- #main-container -->
 
         <div class="footer-container">
@@ -71,6 +75,14 @@
                 <h4>A <a href="http://hackarizona.org">Hack Arizona</a> project.</h4>
             </footer>
         </div>
+
+        <!-- ace.js code editor -->
+        <script src="/gpu.js/common/thirdparty/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+        <script>
+            var editor = ace.edit("particles-editor");
+            editor.setTheme("ace/theme/twilight");
+            editor.session.setMode("ace/mode/javascript");
+        </script>
 
         <!-- load necessary scripts and start the render loop -->
         <script type="text/javascript" src="/gpu.js/common/thirdparty/scriptLoader.js"></script>
