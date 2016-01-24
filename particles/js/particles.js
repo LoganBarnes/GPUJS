@@ -1,4 +1,17 @@
 
+/*
+                                                                                                                                      
+8 888888888o      .8.          8 888888888o. 8888888 8888888888  8 8888     ,o888888o.    8 8888         8 8888888888     d888888o.   
+8 8888    `88.   .888.         8 8888    `88.      8 8888        8 8888    8888     `88.  8 8888         8 8888         .`8888:' `88. 
+8 8888     `88  :88888.        8 8888     `88      8 8888        8 8888 ,8 8888       `8. 8 8888         8 8888         8.`8888.   Y8 
+8 8888     ,88 . `88888.       8 8888     ,88      8 8888        8 8888 88 8888           8 8888         8 8888         `8.`8888.     
+8 8888.   ,88'.8. `88888.      8 8888.   ,88'      8 8888        8 8888 88 8888           8 8888         8 888888888888  `8.`8888.    
+8 888888888P'.8`8. `88888.     8 888888888P'       8 8888        8 8888 88 8888           8 8888         8 8888           `8.`8888.   
+8 8888      .8' `8. `88888.    8 8888`8b           8 8888        8 8888 88 8888           8 8888         8 8888            `8.`8888.  
+8 8888     .8'   `8. `88888.   8 8888 `8b.         8 8888        8 8888 `8 8888       .8' 8 8888         8 8888        8b   `8.`8888. 
+8 8888    .888888888. `88888.  8 8888   `8b.       8 8888        8 8888    8888     ,88'  8 8888         8 8888        `8b.  ;8.`8888 
+8 8888   .8'       `8. `88888. 8 8888     `88.     8 8888        8 8888     `8888888P'    8 888888888888 8 888888888888 `Y8888P ,88P' 
+*/
 
 
 var ParticlesClass = function (solverShader, renderShader, canvasId) {
@@ -121,15 +134,153 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 
 		particlesClass.renderScene.add( particlesClass.renderPoints );
 
-		// particlesClass.updateCamera();
+		particlesClass.updateCamera();
 
 		particlesClass.rendererLoaded = true;
 
 		// particlesClass.resize();
 	});
+
+	// camera and mouse functionality
+	this.anglePhi = 90;
+	this.angleTheta = 0;
+	this.zoomZ = 50;
+
+	this.lastMouseX;
+	this.lastMouseY;
+
+	this.spaceDown;
+	this.moveCamera;
+	this.mouseDown;
+	
+	// mouse event listeners
+	this.canvas.onmousedown = this.handleMouseDown.bind(this);
+	document.onmouseup = this.handleMouseUp.bind(this);
+	document.onmousemove = this.handleMouseMove.bind(this);
+	this.canvas.onwheel = this.handleMouseWheel.bind(this);
+
+	// key event listeners
+	document.onkeydown = this.handleKeyDown.bind(this);
+	document.onkeyup = this.handleKeyUp.bind(this);
+
 }
 
 
+/*
+                                                                          
+ 8 8888 b.             8 8 888888888o   8 8888      88 8888888 8888888888 
+ 8 8888 888o.          8 8 8888    `88. 8 8888      88       8 8888       
+ 8 8888 Y88888o.       8 8 8888     `88 8 8888      88       8 8888       
+ 8 8888 .`Y888888o.    8 8 8888     ,88 8 8888      88       8 8888       
+ 8 8888 8o. `Y888888o. 8 8 8888.   ,88' 8 8888      88       8 8888       
+ 8 8888 8`Y8o. `Y88888o8 8 888888888P'  8 8888      88       8 8888       
+ 8 8888 8   `Y8o. `Y8888 8 8888         8 8888      88       8 8888       
+ 8 8888 8      `Y8o. `Y8 8 8888         ` 8888     ,8P       8 8888       
+ 8 8888 8         `Y8o.` 8 8888           8888   ,d8P        8 8888       
+ 8 8888 8            `Yo 8 8888            `Y88888P'         8 8888       
+*/
+
+/*
+ * Mouse Events
+ */
+
+ParticlesClass.prototype.handleMouseDown = function(mouseEvent) {
+	this.mouseDown = true;
+	var pos = this.getMousePos(mouseEvent);
+	this.lastMouseX = pos.x;
+	this.lastMouseY = pos.y;
+}
+
+ParticlesClass.prototype.handleMouseUp = function(mouseEvent) {
+	this.mouseDown = false;
+}
+
+ParticlesClass.prototype.handleMouseWheel = function(mouseEvent) {
+	mouseEvent.preventDefault(); // no page scrolling when using the canvas
+
+	if (this.moveCamera) {
+		if (mouseEvent.deltaMode == 1) {
+			this.zoomZ += mouseEvent.deltaX * 0.3;
+		} else {
+			this.zoomZ += mouseEvent.deltaY * 0.03;
+		}
+		this.zoomZ = Math.max(0.001, this.zoomZ);
+	}
+
+	this.updateCamera();
+}
+
+ParticlesClass.prototype.handleMouseMove = function(mouseEvent) {
+	
+	if (!this.mouseDown) {
+		return;
+	}
+
+	var pos = this.getMousePos(mouseEvent);
+
+	// var translation
+	var deltaX = pos.x - this.lastMouseX;
+	var deltaY = pos.y - this.lastMouseY;
+
+	if (this.moveCamera) {
+		this.anglePhi -= deltaY * 0.25;
+		this.angleTheta -= deltaX * 0.25;
+		this.anglePhi = Math.max(0.001, this.anglePhi);
+		this.anglePhi = Math.min(179.999, this.anglePhi);
+	} else {}
+
+	this.lastMouseX = pos.x
+	this.lastMouseY = pos.y;
+
+	this.updateCamera();
+}
+
+/*
+ * Key Events
+ */
+
+ParticlesClass.prototype.handleKeyDown = function(keyEvent) {
+	// this.currentlyPressedKeys[keyEvent.keyCode] = true;
+	switch(keyEvent.keyCode) {
+		// CMD key (MAC)
+		case 224: // Firefox
+		case 17:  // Opera
+		case 91:  // Chrome/Safari (left)
+		case 93:  // Chrome/Safari (right)
+			break;
+		case 16: // shift
+			this.moveCamera = true;
+			break;
+		case 32: // space
+			this.spaceDown = true;
+			keyEvent.preventDefault();
+			break;
+		default:
+			// console.log(keyEvent.keyCode);
+			break;
+	}
+}
+
+ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
+	// this.currentlyPressedKeys[keyEvent.keyCode] = false;
+	switch(keyEvent.keyCode) {
+		// CMD key (MAC)
+		case 224: // Firefox
+		case 17:  // Opera
+		case 91:  // Chrome/Safari (left)
+		case 93:  // Chrome/Safari (right)
+			break;
+		case 16: // shift
+			this.moveCamera = false;
+			break;
+		case 32: // space
+			this.spaceDown = false;
+			break;
+		default:
+			// console.log(keyEvent.keyCode);
+			break;
+	}
+}
 
 
 /*
@@ -146,20 +297,26 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 8 8888     `88. 8 888888888888 8            `Yo 8 888888888P'      8 888888888888 8 8888     `88. 
 */
 
-// var counter = 0;
-// var counterMax = 60;
-// var iter = 1;
-// console.log(iter);
 
 ParticlesClass.prototype.render = function() {
+	requestAnimationFrame(this.render.bind(this));
 	
 	if (this.gpuSolver.isPassLoaded("solver") && this.rendererLoaded) {
 
 		this.gpuSolver.runPass( "solver", 0, 0 );
 		this.renderer.render( this.renderScene, this.camera );
-	} else {
-		requestAnimationFrame(this.render.bind(this));
 	}
+}
+
+
+ParticlesClass.prototype.updateCamera = function() {
+	var phi = degToRad(this.anglePhi);
+	var theta = degToRad(this.angleTheta);
+
+	this.camera.position.x = Math.sin(phi) * Math.sin(theta) * this.zoomZ;
+	this.camera.position.y = Math.cos(phi) * this.zoomZ;
+	this.camera.position.z = Math.sin(phi) * Math.cos(theta) * this.zoomZ;
+	this.camera.lookAt( this.renderScene.position );
 }
 
 
@@ -174,6 +331,32 @@ ParticlesClass.prototype.resize = function() {
 
 	// set this the right way
 	this.camera.aspect = this.canvas.width / this.canvas.height;
+}
+
+
+/*
+                                                         
+8 8888      88 8888888 8888888888  8 8888 8 8888         
+8 8888      88       8 8888        8 8888 8 8888         
+8 8888      88       8 8888        8 8888 8 8888         
+8 8888      88       8 8888        8 8888 8 8888         
+8 8888      88       8 8888        8 8888 8 8888         
+8 8888      88       8 8888        8 8888 8 8888         
+8 8888      88       8 8888        8 8888 8 8888         
+` 8888     ,8P       8 8888        8 8888 8 8888         
+  8888   ,d8P        8 8888        8 8888 8 8888         
+   `Y88888P'         8 8888        8 8888 8 888888888888 
+*/
+
+/*
+ * Returns the mouse position relative to the canvas
+ */
+ParticlesClass.prototype.getMousePos = function(evt) {
+	var rect = this.canvas.getBoundingClientRect();
+	return {
+		x: evt.clientX - rect.left,
+		y: evt.clientY - rect.top
+	};
 }
 
 
