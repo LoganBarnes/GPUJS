@@ -15,9 +15,14 @@
         <link rel="stylesheet" href="css/particles.css">
 
         <script src="/gpu.js/common/thirdparty/modernizr-2.8.3.min.js"></script>
-        <script type="text/javascript" src="/gpu.js/common/thirdparty/jquery.min.js"></script>
-        <script src="js/main.js"></script>
+
+        <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+        <script>!window.jQuery && document.write('<script src="/gpu.js/common/thirdparty/jquery.min.js"><\/script>')</script>
+        
+        <!-- <script type="text/javascript" src="/gpu.js/common/thirdparty/jquery.min.js"></script> -->
     </head>
+
     <body>
 
         <div class="header-container">
@@ -61,12 +66,7 @@
                     <!-- uneditable code goes here -->
 
                     <!-- Text editor for user input of code -->
-                    <pre id="particles-editor">function foo(items) {
-                        var i;
-                        for (i = 0; i &lt; items.length; i++) {
-                            alert("w00t!" + items[i]);
-                        }
-                    }</pre>
+                    <pre id="particles-editor"></pre>
 
                     <!-- uneditable code goes here -->
 
@@ -96,9 +96,7 @@
         <!-- load necessary scripts and start the render loop -->
         <script type="text/javascript" src="/gpu.js/common/thirdparty/scriptLoader.js"></script>
         <script type="text/javascript">
-
-            loadScripts([   "/gpu.js/common/thirdparty/jquery.min.js",
-                            "/gpu.js/common/thirdparty/util.min.js",
+            loadScripts([   "/gpu.js/common/thirdparty/util.min.js",
                             "/gpu.js/common/thirdparty/three.min.js",
                             "/gpu.js/common/gpujs/gpu.js",
                             "js/main.js",
