@@ -291,15 +291,7 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 			this.spaceDown = false;
 			break;
 		case 80: // P
-			this.paused = !this.paused;
-			if (!this.paused)
-			{
-				// this.outputElement.innerHTML = "";
-				this.lastTime = new Date().getTime() - 20;
-				this.tick();
-			} else {
-				// this.outputElement = "<p>PAUSED</p>";
-			}
+			$("#start-stop-button").click();
 			break;
 		default:
 			// console.log(keyEvent.keyCode);

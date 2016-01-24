@@ -13,9 +13,13 @@ $('#start-stop-button').click(function(){
     if ($button.is(".paused")) {
         $button.html("Start");
         console.log("Start");
+        particlesClass.paused = true;
     } else {
         $button.html("Pause");
         console.log("Pause");
+        particlesClass.paused = false;
+        particlesClass.lastTime = new Date().getTime() - 20;
+        particlesClass.tick();
     }
 
 });
