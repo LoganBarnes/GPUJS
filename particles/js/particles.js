@@ -26,9 +26,9 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 
 	var numParticles = 1000;
 	this.oldDeltaTime = 0.02;
-	var radius = 25.0;
+	var radius = 2.5;
 	// var velocity = 5.0;
-	var velocity = 25.0;
+	var velocity = 2.5;
 
 	var dist = velocity * this.oldDeltaTime;
 
@@ -151,7 +151,7 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	// camera and mouse functionality
 	this.anglePhi = 90;
 	this.angleTheta = 0;
-	this.zoomZ = 100;
+	this.zoomZ = 10;
 
 	this.lastMouseX;
 	this.lastMouseY;
@@ -289,9 +289,6 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 			break;
 		case 32: // space
 			this.spaceDown = false;
-			break;
-		case 80: // P
-			$("#start-stop-button").click();
 			break;
 		default:
 			// console.log(keyEvent.keyCode);

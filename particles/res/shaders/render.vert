@@ -7,7 +7,7 @@ precision highp int;
 
 
 const float PI = 3.14159265359;
-
+const float density = 100.0;
 
 /*
  * DEFAULT
@@ -46,7 +46,7 @@ void main(void) {
 	vUseParticle = 1.0;
 
 	 // function of mass and density
-	float radius = pow((3.0 * pos.w) / (4.0 * PI), 1.0 / 3.0);
+	float radius = pow((3.0 * pos.w) / (density * 4.0 * PI), 1.0 / 3.0);
 
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xyz, 1.0);
 	gl_PointSize = float(screenHeight) * projectionMatrix[1][1] * radius / gl_Position.w;

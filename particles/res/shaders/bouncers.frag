@@ -23,15 +23,15 @@ vec4 user_FunctionMain(in int _x, in int _y, in int _index)
 	vec4 data = vec4(0.0);
 	/* start user code */
 
-	vec3 bounds = vec3(50);
+	vec3 bounds = vec3(5,3,5);
 	float damper = 0.5;
-	vec3 gravity = vec3(0, -90.8, 0);
+	vec3 gravity = vec3(0, -9.8, 0);
 
 	vec4 currData = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[0]));
 	vec4 prevData = texture2D(textures[1], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[1]));
 
 	vec3 velocity = (currData.xyz - prevData.xyz) / fvars[1];
-	velocity += gravity * fvars[0] * 0.5;
+	velocity += gravity * fvars[0];
 	vec3 deltaVel = velocity * fvars[0];
 	vec3 newPos = currData.xyz + deltaVel;
 
