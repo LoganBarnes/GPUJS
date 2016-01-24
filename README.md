@@ -4,4 +4,6 @@
 
 ### Scott McGowan and Logan Barnes
 
-A [Hack Arizona](http://hackarizona.org/) project. 
+##### Check out the demo on our [GitHub Pages](http://loganbarnes.github.io/gpu.js) site!
+
+A [Hack Arizona](http://hackarizona.org/) project.
