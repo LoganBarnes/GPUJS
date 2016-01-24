@@ -191,7 +191,7 @@ div.left, div.right {
 
 div.left {
     /*width: 60%;*/
-    min-width: 40%;
+    min-width: 20%;
     resize: both;
 }
 
