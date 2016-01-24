@@ -6,7 +6,7 @@ $(function() {
 // Submit editor text
 $('#submit-button').click(function(){
     var result = editor.getValue();
-    
+
     //TODO: Do something with result
     console.log(result);
 });
@@ -21,4 +21,5 @@ function resetEditor() {
           "    }\n" +
           "}";
     editor.setValue(str);
+    editor.focus();
 }
