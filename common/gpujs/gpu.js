@@ -28,7 +28,7 @@ var InputType = Object.freeze({
 var GPU = function(width, height, canvasId) {
 
 	// shader program; primitive shape; cubemap/skybox setup
-	this.SolverPass = makeStruct("scene mesh textures dataRTs dataDims resultRT resultDim loaded nextPass");
+	this.SolverPass = makeStruct("scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded nextPass");
 
 	// stores solver 'passes'
 	this.passes = {};
@@ -52,9 +52,6 @@ var GPU = function(width, height, canvasId) {
 	this.renderer.setClearColor( 0x000000, 1 );
 
 	this.canvas = this.renderer.domElement;
-
-	this.deltaTime;
-	this.oldDeltaTime;
 };
 
 
@@ -74,159 +71,12 @@ GPU.prototype.getRenderer = function() {
 };
 
 
-// /**
-//  * 
-//  *  passData = {
-//  *  	initialArray (data, required),
-//  *  	prevArray (alt data)
-//  *  	shader (filepath),
-//  * 		swapX (webcam textures)
-//  *  }
-//  */
-// GPU.prototype.addInitialData = function(passName, passData) {
-
-// 	if (passData.initialArray === undefined) {
-// 		console.error("'initialArray' must be defined")
-// 	}
-
-// 	// should set these dynamically bassed on number of elements
-// 	var arrayLength = passData.initialArray.length;
-// 	var numElements = arrayLength / 4;
-// 	var TEXTURE_WIDTH = next_pow2(Math.sqrt(numElements));
-// 	var TEXTURE_HEIGHT = TEXTURE_WIDTH;
-// 	var TEXTURE_SIZE = TEXTURE_WIDTH * TEXTURE_HEIGHT;
-// 	var TEXTURE_ARRAY_SIZE = TEXTURE_SIZE * 4;
-
-// 	var shader = "res/shaders/default.frag";
-// 	if (passData.shader !== undefined)
-// 		shader = passData.shader;
-// 	else
-// 		passData.prevArray = null; // default doesn't use prevData, user shader must be defined
-
-// 	console.log("elements: " + numElements);
-// 	console.log("width: " + TEXTURE_WIDTH);
-// 	console.log("height: " + TEXTURE_HEIGHT);
-// 	console.log("size: " + TEXTURE_SIZE);
-// 	console.log("shader: " + shader);
-	
-
-// 	var prevRT = null;
-// 	if ( passData.prevArray ) { // prevArray exists
-
-// 		if ( passData.prevArray.length !== arrayLength ) {
-// 			console.error( "'prevArray' must be same size as 'initialArray'" );
-// 			return;
-// 		}
-
-// 		// create texture array to fill entire texture
-// 		var prevArray = new Float32Array(TEXTURE_SIZE * 4);
-
-// 		// copy over the original data
-// 		for ( var i = 0; i < arrayLength; ++i) {
-// 			prevArray[i] = passData.prevArray[i];
-// 		}
-// 		// pad the rest of the array with zeros
-// 		for ( var i = arrayLength; i < TEXTURE_ARRAY_SIZE; ++i ) {
-// 			prevArray[i] = 0.0;
-// 		}
-
-// 		prevRT = new THREE.WebGLRenderTarget(TEXTURE_WIDTH, TEXTURE_HEIGHT );
-// 		prevRT.texture.dispose();
-// 		prevRT.texture = new THREE.DataTexture(prevArray, TEXTURE_WIDTH, TEXTURE_HEIGHT, THREE.RGBAFormat, THREE.FloatType );
-// 		prevRT.texture.wrapS = THREE.ClampToEdgeWrapping;
-// 		prevRT.texture.wrapT = THREE.ClampToEdgeWrapping;
-// 		prevRT.texture.needsUpdate = true;
-// 	}
-
-// 	// create texture array to fill entire texture
-// 	var initialArray = new Float32Array(TEXTURE_SIZE * 4);
-
-// 	// copy over the original data
-// 	for ( var i = 0; i < arrayLength; ++i) {
-// 		initialArray[i] = passData.initialArray[i];
-// 	}
-// 	// pad the rest of the array with zeros
-// 	for ( var i = arrayLength; i < TEXTURE_ARRAY_SIZE; ++i ) {
-// 		initialArray[i] = 0.0;
-// 	}
-
-// 	// for use in async methods
-// 	var gpuLib = this;
-
-// 	// sets update function if necessary
-// 	// var usePrev = passData.prevArray !== undefined;
-
-	
-// 	var currRT = new THREE.WebGLRenderTarget(TEXTURE_WIDTH, TEXTURE_HEIGHT );
-// 	currRT.texture.dispose();
-// 	currRT.texture = new THREE.DataTexture(initialArray, TEXTURE_WIDTH, TEXTURE_HEIGHT, THREE.RGBAFormat, THREE.FloatType );
-// 	currRT.texture.wrapS = THREE.ClampToEdgeWrapping;
-// 	currRT.texture.wrapT = THREE.ClampToEdgeWrapping;
-// 	currRT.texture.needsUpdate = true;
-	
-// 	var resultRT = new THREE.WebGLRenderTarget(TEXTURE_WIDTH, TEXTURE_HEIGHT );
-// 	resultRT.texture.dispose();
-// 	resultRT.texture = new THREE.DataTexture(initialArray, TEXTURE_WIDTH, TEXTURE_HEIGHT, THREE.RGBAFormat, THREE.FloatType );
-// 	resultRT.texture.wrapS = THREE.ClampToEdgeWrapping;
-// 	resultRT.texture.wrapT = THREE.ClampToEdgeWrapping;
-
-// 	var solverPass = new this.SolverPass(
-// 		new THREE.Scene(),
-// 		null,
-// 		prevRT,
-// 		currRT,
-// 		resultRT,
-// 		numElements,
-// 		false);
-
-// 	this.passes[passName] = solverPass;
-
-// 	var swapX = false;
-// 	if (passData.swapX !== undefined)
-// 		swapX = passData.swapX;
-
-// 	loadFiles(["res/shaders/solver.vert", shader], function (shaderText) {
-		
-// 		var uniforms = {
-// 				currTex: { type: "t", value: solverPass.currRT.texture },
-// 				texWidth: { type: "i", value: TEXTURE_WIDTH },
-// 				texHeight: { type: "i", value: TEXTURE_HEIGHT },
-// 				outputWidth: { type: "i", value: TEXTURE_WIDTH },
-// 				outputHeight: { type: "i", value: TEXTURE_HEIGHT },
-// 				numElements: { type: "i", value: solverPass.numElements },
-// 				prevDeltaTime: { type: "f", value: 0.001 }, // gets reset
-// 				deltaTime: { type: "f", value: 0.001 },  // gets reset
-// 				swapX: { type: "i", value: swapX }
-// 			}
-// 		if ( solverPass.prevRT )
-// 				uniforms.prevTex = { type: "t", value: solverPass.prevRT.texture };
-
-// 		// create sovler program
-// 		solverPass.mesh = new THREE.Mesh(
-
-// 			new THREE.PlaneGeometry( 2.01, 2.01, 1 ),
-
-// 			new THREE.ShaderMaterial( {
-
-// 				uniforms: uniforms,
-// 				vertexShader: shaderText[0],
-// 				fragmentShader: shaderText[1]
-// 			} )
-// 			// new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
-// 		);
-
-// 		solverPass.scene.add( solverPass.mesh );
-
-// 		solverPass.loaded = true;
-// 	});
-// };
-
-
 /**
  *  
  *  passData = {
  *  	texInput (image, required),
  * 		prevImgVid (image data),
+ *      fvars (float array),
  *  	shader (filepath),
  * 		swapX (webcam textures)
  *  }
@@ -263,8 +113,6 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 	var shader = libLocation + "shaders/default.frag";
 	if (passData.shader !== undefined)
 		shader = passData.shader;
-	else
-		passData.prevtexInput = null; // default doesn't use prevData, user shader must be defined
 
 	var dataRTs = new Array(passData.texData.length);
 	var textures = new Array(passData.texData.length);
@@ -329,6 +177,34 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 				}
 
 				break;
+			case InputType.ROTATING:
+				if (!w || !h) {
+					w = next_pow2(Math.sqrt(texInput.length / 4));
+					h = w;
+					size = texInput.length / 4;
+
+					if (!outputWidth || !outputHeight) {
+						outputWidth = w;
+						outputHeight = h;
+						outputSize = size;
+					}
+				}
+
+				var dataRT = new THREE.WebGLRenderTarget( outputWidth, outputHeight );
+				dataRT.texture.dispose();
+
+				var dataSize = w * h * 4;
+				if (dataSize > texInput.length) {
+					var padArray = new Float32Array(w * h * 4);
+					padArray.set(texInput);
+					dataRT.texture = new THREE.DataTexture(padArray, w, h, THREE.RGBAFormat, THREE.FloatType );
+				} else {
+					dataRT.texture = new THREE.DataTexture(texInput, w, h, THREE.RGBAFormat, THREE.FloatType );
+				}
+				texture = dataRT.texture;
+				dataRTs[i] = dataRT;
+
+				break;
 			default:
 				console.error("inputType: '" + texData.inputType + "' is not valid");
 				return;
@@ -364,9 +240,9 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 	resultRT.texture.magFilter = THREE.NearestFilter;
 	resultRT.texture.minFilter = THREE.NearestFilter;
 
-	var resultDim = [ outputWidth, outputHeight, outputSize ];
+	var resultDim = [ outputWidth, outputHeight, outputWidth * outputHeight ];
 
-	// "scene mesh textures dataRTs dataDims resultRT resultDim loaded nextPass"
+	// "scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded nextPass"
 	var solverPass = new this.SolverPass(
 		new THREE.Scene(),
 		null,		// mesh (set in async method)
@@ -375,6 +251,7 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 		dataDims,
 		resultRT,
 		resultDim,
+		(passData.fvars !== undefined ? passData.fvars : []),
 		false,		// loaded
 		null);      // next pass
 
@@ -394,8 +271,7 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 				textures: { type: "tv", value: solverPass.textures },
 				texDims: { type: "iv", value: solverPass.dataDims },
 				outputDim: { type: "iv", value: solverPass.resultDim },
-				prevDeltaTime: { type: "f", value: 0.001 }, // gets reset
-				deltaTime: { type: "f", value: 0.001 },  // gets reset
+				fvars: { type: "1fv", value: solverPass.fvars }, // gets reset
 				swapX: { type: "i", value: swapX }
 			}
 
@@ -534,7 +410,7 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 	var resultDim = [ outputWidth, outputHeight, outputWidth * outputHeight ];
 
 
-	// "scene mesh textures dataRTs dataDims resultRT resultDim loaded nextPass"
+	// "scene mesh textures dataDims resultRT resultDim fvars loaded nextPass"
 	var solverPass = new this.SolverPass(
 		new THREE.Scene(),
 		null,		// mesh (set in async method)
@@ -562,8 +438,7 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 				textures: { type: "tv", value: solverPass.textures },
 				texDims: { type: "iv", value: solverPass.dataDims },
 				outputDim: { type: "iv", value: solverPass.resultDim },
-				prevDeltaTime: { type: "f", value: 0.001 }, // gets reset
-				deltaTime: { type: "f", value: 0.001 },  // gets reset
+				fvars: { type: "1fv", value: [] }, // gets reset
 				swapX: { type: "i", value: swapX }
 			}
 
@@ -592,17 +467,13 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 /**
  * return true if passName exists, false otherwise
  */
-GPU.prototype.runPass = function(passName, oldDeltaTime, deltaTime) {
+GPU.prototype.runPass = function(passName) {
 	
 	if (this.checkPassExists(passName))
 	{
-
 		var solverPass = this.passes[passName];
-		// console.log(solverPass);
 
 		while (solverPass) {
-			solverPass.mesh.material.uniforms.prevDeltaTime.value = oldDeltaTime;
-			solverPass.mesh.material.uniforms.deltaTime.value = deltaTime;
 
 			this.renderer.autoClear = true;
 			this.renderer.autoClearColor = true;
@@ -750,40 +621,53 @@ GPU.prototype.setUpdateTexture = function(passName, passNum, texNum) {
  * return true if passName exists, false otherwise
  * FOR ROTATING PASSES ONLY
  */
+GPU.prototype.rotateFVars = function(passName, firstVar) {
+
+	if (this.checkPassExists(passName))
+	{
+		var solverPass = this.getPass(passName, 0);
+
+		var numFVars = solverPass.fvars.length;
+		firstVar = (firstVar !== undefined ? firstVar : solverPass.fvars[numFVars-1]);
+
+		for (var i = numFVars-1; i > 0; i--) {
+			solverPass.fvars[i] = solverPass.fvars[i-1];
+		}
+		solverPass.fvars[0] = firstVar;
+		
+		return true;	
+	}
+	return false;
+}
+
+
+/**
+ * return true if passName exists, false otherwise
+ * FOR ROTATING PASSES ONLY
+ */
 GPU.prototype.rotateSolverTargets = function(passName) {
 
 	if (this.checkPassExists(passName))
 	{
-		var solverPass = this.passes[passName];
-		// pass vars:
-		// "scene mesh textures dataRTs dataDims resultRT resultDim loaded nextPass"
+		var solverPass = this.getPass(passName, 0);
 
+		// console.log("solverPass:");
+		// console.log( solverPass.resultRT );
+		
 		var numRTs = solverPass.dataRTs.length;
+		var oldRT = solverPass.dataRTs[numRTs-1];
+		// console.log(numRTs);
+		// console.log(numRTs);
 
-		var temp = solverPass.dataRTs[0];
-
-		for (var i = 1; i < numRTs; i++) {
-			solverPass.dataRTs[i-1] = solverPass.dataRTs[i];
+		for (var i = numRTs-1; i > 0; i--) {
+			solverPass.dataRTs[i] = solverPass.dataRTs[i-1];
+			solverPass.textures[i] = solverPass.dataRTs[i];
 		}
+		solverPass.dataRTs[0] = solverPass.resultRT;
+		solverPass.textures[0] = solverPass.dataRTs[0];
+		solverPass.resultRT = oldRT;
 
-		solverPass.dataRTs[numRTs-1] = temp;
-
-		// if ( solverPass.prevRT ) {
-		// 	var temp = solverPass.dataRTs[0];
-		// 	solverPass.prevRT = solverPass.currRT;
-		// 	solverPass.currRT = solverPass.resultRT;
-		// 	solverPass.resultRT = temp;
-
-		// 	solverPass.mesh.material.uniforms.prevTex.value = solverPass.prevRT.texture;
-		// 	solverPass.mesh.material.uniforms.currTex.value = solverPass.currRT.texture;
-		// } else {
-		// 	var temp = solverPass.currRT;
-		// 	solverPass.currRT = solverPass.resultRT;
-		// 	solverPass.resultRT = temp;
-
-		// 	solverPass.mesh.material.uniforms.currTex.value = solverPass.currRT.texture;
-		// }
-
+		// console.log(solverPass.resultRT);
 		
 		return true;	
 	}

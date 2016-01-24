@@ -27,8 +27,8 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	var numParticles = 1000;
 	this.oldDeltaTime = 0.02;
 	var radius = 25.0;
-	var velocity = 5.0;
-	// var velocity = 25.0;
+	// var velocity = 5.0;
+	var velocity = 25.0;
 
 	var dist = velocity * this.oldDeltaTime;
 
@@ -54,14 +54,18 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	this.gpuSolver.addInitialPass("solver", {
 		texData: [ {
 			texInput: currInitialArray,
-			inputType: InputType.ARRAY
+			inputType: InputType.ROTATING
 		},
 		{
 			texInput: prevInitialArray,
-			inputType: InputType.ARRAY
+			inputType: InputType.ROTATING
 		} ],
+	// } ],
+		fvars: [this.oldDeltaTime, this.oldDeltaTime],
 		shader: solverShader
 	});
+
+	// console.log(this.gpuSolver.passes["solver"]);
 
 	/*
 	 * GPU SOLVER METHODS TO INTEGRATE WITH RENDERING
@@ -81,6 +85,8 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	var passWidth = this.gpuSolver.getSolverResultWidth("solver");
 	var passHeight = this.gpuSolver.getSolverResultHeight("solver");
 	var passSize = this.gpuSolver.getSolverResultSize("solver");
+
+	// console.log(passWidth + ", " + passHeight + " : " + passSize);
 
 
 	/*
@@ -137,13 +143,15 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 
 		particlesClass.rendererLoaded = true;
 
-		// particlesClass.resize();
+		particlesClass.resize();
+
+		// console.log(particlesClass.renderPoints);
 	});
 
 	// camera and mouse functionality
 	this.anglePhi = 90;
 	this.angleTheta = 0;
-	this.zoomZ = 50;
+	this.zoomZ = 100;
 
 	this.lastMouseX;
 	this.lastMouseY;
@@ -316,6 +324,7 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 
 
 ParticlesClass.prototype.tick = function() {
+	// this.paused = true;
 	if (!this.paused) {
 		requestAnimationFrame(this.tick.bind(this));
 	}
@@ -325,10 +334,16 @@ ParticlesClass.prototype.tick = function() {
 		// update time
 		var timeNow = new Date().getTime(); // milliseconds
 		var deltaTime = (timeNow - this.lastTime) / 1000.0; // seconds
+		deltaTime = Math.min(deltaTime, 0.05);
 		this.lastTime = timeNow;
 
-		this.gpuSolver.runPass( "solver", 0, 0 );
+		this.gpuSolver.rotateFVars("solver", deltaTime);
+		this.gpuSolver.runPass( "solver" );
 		this.renderer.render( this.renderScene, this.camera );
+
+		this.gpuSolver.rotateSolverTargets("solver");
+		this.renderPoints.material.uniforms.texture.value = this.gpuSolver.getSolverResultTexture( "solver" );
+
 	} else {
 		this.lastTime = new Date().getTime() - 20;
 	}
@@ -350,8 +365,8 @@ ParticlesClass.prototype.updateCamera = function() {
  * Updates the canvas, viewport, and camera based on the new dimensions.
  */
 ParticlesClass.prototype.resize = function() {
-	this.canvas.width = window.innerWidth / 2;
-	this.canvas.height = window.innerWidth / 2;
+	// this.canvas.width = window.innerWidth / 2;
+	// this.canvas.height = window.innerWidth / 2;
 
 	this.renderer.setSize( this.canvas.width, this.canvas.height );
 
@@ -401,11 +416,13 @@ ParticlesClass.prototype.getMousePos = function(evt) {
 */
 
 
+var particlesClass;
 
 var main = function() {
-	var userSolver = "res/shaders/static.frag";
+	// var userSolver = "res/shaders/static.frag";
+	var userSolver = "res/shaders/bouncers.frag";
 	var userRenderer = "res/shaders/render.frag";
-	var particlesClass = new ParticlesClass(userSolver, userRenderer, "#particles-canvas");
+	particlesClass = new ParticlesClass(userSolver, userRenderer, "#particles-canvas");
 
 	particlesClass.tick();
 }
