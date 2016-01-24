@@ -1,13 +1,20 @@
 precision highp float;
 precision highp int;
 
-const int numVars = /* must be set at runtime */
+const int numTex = /*** set at runtime ***/;
+const int numVars = /*** set at runtime ***/;
 
-uniform sampler2D textures[ numVars ];
-uniform ivec3 texDims[ numVars ];
+/* input data and dimensions */
+uniform sampler2D textures[ numTex ];
+uniform ivec3 texDims[ numTex ];
 
+/* output dimensions */
 uniform ivec3 outputDim;
 
+/* constant input variables (like time, scale, etc.) */
+uniform float fvars[ numVars ];
+
+/* used to flip images over the vertical axis */
 uniform bool swapX;
 
 

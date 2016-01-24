@@ -404,17 +404,7 @@ ParticlesClass.prototype.getMousePos = function(evt) {
 ,8'         `         `8.`8888. .8'       `8. `88888.  8 8888     8            `Yo 
 */
 
-
-var particlesClass;
-
-var main = function() {
-	// var userSolver = "res/shaders/static.frag";
-	var userSolver = "res/shaders/bouncers.frag";
-	var userRenderer = "res/shaders/render.frag";
-	particlesClass = new ParticlesClass(userSolver, userRenderer, "#particles-canvas");
-
-	particlesClass.tick();
-}
+var particlesClass = null;
 
 
 

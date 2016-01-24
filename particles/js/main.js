@@ -29,14 +29,27 @@ $('#submit-button').click(function(){
 
     //TODO: Do something with result
     console.log(result);
+
+    var userSolver = "res/shaders/bouncers.frag";
+    var userRenderer = "res/shaders/render.frag";
+    particlesClass = new ParticlesClass(userSolver, userRenderer, "#particles-canvas");
+
+    particlesClass.tick();
 });
 
 
 // Reset editor text
 $('#reset-button').click(resetEditor);
-function resetEditor() {    
+function resetEditor() {
+  
     $.get("res/user_sample_bouncers.txt", function(data) {
         editor.setValue(data);
         editor.focus();
+
+        var userSolver = "res/shaders/bouncers.frag";
+        var userRenderer = "res/shaders/render.frag";
+        particlesClass = new ParticlesClass(userSolver, userRenderer, "#particles-canvas");
+
+        particlesClass.tick();
     });
 }
