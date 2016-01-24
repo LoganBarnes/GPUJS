@@ -1,6 +1,6 @@
 // On page load
 $(function() {
-    resetEditor();
+    // resetEditor();
 });
 
 
@@ -18,13 +18,6 @@ $('#start-stop-button').click(function(){
         console.log("Pause");
     }
 
-
-    // if(button.value == "OFF") {
-    //     button.value = "ON";
-    // }
-    // else {
-    //     button.value = "OFF";
-    // }
 });
 
 // Submit editor text
@@ -44,6 +37,9 @@ function resetEditor() {
           "        alert(\"w00t!\" + items[i]);\n" +
           "    }\n" +
           "}";
+
+
+    var str1 = ""
     editor.setValue(str);
     editor.focus();
 }
