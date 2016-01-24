@@ -25,7 +25,7 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	this.gpuSolver = new GPU(canvas.width, canvas.height, canvasId); 
 
 	var numParticles = 1000;
-	this.oldDeltaTime = 0.01;
+	this.oldDeltaTime = 0.02;
 	var radius = 25.0;
 	var velocity = 5.0;
 	// var velocity = 25.0;
@@ -44,9 +44,9 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	var currInitialArray = new Float32Array(numParticles * 4);
 	for (var i = 0; i < numParticles; ++i) {
 		var index = i * 4;
-		currInitialArray[index  ] = prevInitialArray[index  ] + Math.random() * dist - dist * 0.5;
-		currInitialArray[index+1] = prevInitialArray[index+1] + Math.random() * dist - dist * 0.5;
-		currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist - dist * 0.5;
+		currInitialArray[index  ] = prevInitialArray[index  ] + Math.random() * dist * 2 - dist;
+		currInitialArray[index+1] = prevInitialArray[index+1] + Math.random() * dist * 2 - dist;
+		currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist * 2 - dist;
 		currInitialArray[index+3] = 1.0;
 	}
 
@@ -55,11 +55,10 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 		texData: [ {
 			texInput: currInitialArray,
 			inputType: InputType.ARRAY
-		// },
-		// {
-		// 	texInput: prevInitialArray,
-		// 	inputType: InputType.ARRAY
-		// } ],
+		},
+		{
+			texInput: prevInitialArray,
+			inputType: InputType.ARRAY
 		} ],
 		shader: solverShader
 	});
@@ -163,6 +162,8 @@ var ParticlesClass = function (solverShader, renderShader, canvasId) {
 	document.onkeydown = this.handleKeyDown.bind(this);
 	document.onkeyup = this.handleKeyUp.bind(this);
 
+	this.paused = false;
+	this.lastTime = new Date().getTime() - 20;
 }
 
 
@@ -208,13 +209,15 @@ ParticlesClass.prototype.handleMouseWheel = function(mouseEvent) {
 	}
 
 	this.updateCamera();
+
+	if (this.paused && this.rendererLoaded)
+		this.renderer.render( this.renderScene, this.camera );
 }
 
 ParticlesClass.prototype.handleMouseMove = function(mouseEvent) {
 	
-	if (!this.mouseDown) {
+	if (!this.mouseDown)
 		return;
-	}
 
 	var pos = this.getMousePos(mouseEvent);
 
@@ -227,12 +230,15 @@ ParticlesClass.prototype.handleMouseMove = function(mouseEvent) {
 		this.angleTheta -= deltaX * 0.25;
 		this.anglePhi = Math.max(0.001, this.anglePhi);
 		this.anglePhi = Math.min(179.999, this.anglePhi);
-	} else {}
+	}
 
 	this.lastMouseX = pos.x
 	this.lastMouseY = pos.y;
 
 	this.updateCamera();
+
+	if (this.paused && this.rendererLoaded)
+		this.renderer.render( this.renderScene, this.camera );
 }
 
 /*
@@ -276,6 +282,17 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 		case 32: // space
 			this.spaceDown = false;
 			break;
+		case 80: // P
+			this.paused = !this.paused;
+			if (!this.paused)
+			{
+				// this.outputElement.innerHTML = "";
+				this.lastTime = new Date().getTime() - 20;
+				this.tick();
+			} else {
+				// this.outputElement = "<p>PAUSED</p>";
+			}
+			break;
 		default:
 			// console.log(keyEvent.keyCode);
 			break;
@@ -298,13 +315,22 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 */
 
 
-ParticlesClass.prototype.render = function() {
-	requestAnimationFrame(this.render.bind(this));
+ParticlesClass.prototype.tick = function() {
+	if (!this.paused) {
+		requestAnimationFrame(this.tick.bind(this));
+	}
 	
 	if (this.gpuSolver.isPassLoaded("solver") && this.rendererLoaded) {
 
+		// update time
+		var timeNow = new Date().getTime(); // milliseconds
+		var deltaTime = (timeNow - this.lastTime) / 1000.0; // seconds
+		this.lastTime = timeNow;
+
 		this.gpuSolver.runPass( "solver", 0, 0 );
 		this.renderer.render( this.renderScene, this.camera );
+	} else {
+		this.lastTime = new Date().getTime() - 20;
 	}
 }
 
@@ -381,7 +407,7 @@ var main = function() {
 	var userRenderer = "res/shaders/render.frag";
 	var particlesClass = new ParticlesClass(userSolver, userRenderer, "#particles-canvas");
 
-	particlesClass.render();
+	particlesClass.tick();
 }
 
 
