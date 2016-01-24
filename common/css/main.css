@@ -153,24 +153,6 @@ nav a:hover {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
-/*
-.left {
-    display: inline-block;
-    float: left;
-    min-width: 48%;
-    margin: 0 0;
-    overflow: auto;
-    border: 2px solid black;
-}
-
-.right {
-    display: inline-block;
-    float: right;
-    min-width: 48%;
-    margin: 0 0;
-    overflow: auto;
-    border: 2px solid black;
-}*/
 
 textarea {
     display: block;
@@ -197,6 +179,20 @@ div.left {
 
 div.right {
     flex: 1 1 0;
+}
+
+
+/* Helpers */
+.inline {
+    display: inline-block;
+}
+
+.float-right {
+    float: right;
+}
+
+.float-left {
+    float: left;
 }
 
 /* ==========================================================================
