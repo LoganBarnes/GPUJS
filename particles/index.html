@@ -66,5 +66,21 @@
             </footer>
         </div>
 
+        <!-- load necessary scripts and start the render loop -->
+        <script type="text/javascript" src="/gpu.js/common/thirdparty/scriptLoader.js"></script>
+        <script type="text/javascript">
+
+            loadScripts([   "/gpu.js/common/thirdparty/jquery.min.js",
+                            "/gpu.js/common/thirdparty/util.min.js",
+                            "/gpu.js/common/thirdparty/three.min.js",
+                            "/gpu.js/common/gpujs/gpu.js",
+                            "js/main.js",
+                            "js/particles.js"],
+                function() {
+                    main();
+            });
+
+        </script>
+
     </body>
 </html>
