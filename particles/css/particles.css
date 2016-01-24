@@ -24,7 +24,7 @@
     height: 600px;
 }
 
-#reset-button, #submit-button {
+button {
     /*float: right;*/
     margin-top: 1em;
     margin-bottom: 1em;

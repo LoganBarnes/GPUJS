@@ -3,6 +3,30 @@ $(function() {
     resetEditor();
 });
 
+
+$('#start-stop-button').click(function(){
+    console.log("barfoo")
+
+    $button = $(this);
+    $button.toggleClass('paused');
+
+    if ($button.is(".paused")) {
+        $button.html("Start");
+        console.log("Start");
+    } else {
+        $button.html("Pause");
+        console.log("Pause");
+    }
+
+
+    // if(button.value == "OFF") {
+    //     button.value = "ON";
+    // }
+    // else {
+    //     button.value = "OFF";
+    // }
+});
+
 // Submit editor text
 $('#submit-button').click(function(){
     var result = editor.getValue();
