@@ -1,28 +1,27 @@
 // On page load
 $(function() {
-    // resetEditor();
+    resetEditor();
 });
 
 
+// Start-Stop toggle functionality
 $('#start-stop-button').click(function(){
-    console.log("barfoo")
-
     $button = $(this);
     $button.toggleClass('paused');
 
     if ($button.is(".paused")) {
         $button.html("Start");
-        console.log("Start");
         particlesClass.paused = true;
+        console.log("Render Paused");
     } else {
         $button.html("Pause");
-        console.log("Pause");
         particlesClass.paused = false;
         particlesClass.lastTime = new Date().getTime() - 20;
         particlesClass.tick();
+        console.log("Render Resumed");
     }
-
 });
+
 
 // Submit editor text
 $('#submit-button').click(function(){
@@ -32,18 +31,12 @@ $('#submit-button').click(function(){
     console.log(result);
 });
 
+
 // Reset editor text
 $('#reset-button').click(resetEditor);
-function resetEditor() {
-    var str = "function foo(items) {\n" +
-          "    var i;\n" +
-          "    for (i = 0; i < items.length; i++) {\n" +
-          "        alert(\"w00t!\" + items[i]);\n" +
-          "    }\n" +
-          "}";
-
-
-    var str1 = ""
-    editor.setValue(str);
-    editor.focus();
+function resetEditor() {    
+    $.get("res/user_sample_bouncers.txt", function(data) {
+        editor.setValue(data);
+        editor.focus();
+    });
 }
