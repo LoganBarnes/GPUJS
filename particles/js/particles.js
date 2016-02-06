@@ -181,7 +181,11 @@ ParticlesClass.prototype.init = function(renderShader) {
 
 		particlesClass.rendererLoaded = true;
 
-		particlesClass.resize();
+		// var container = document.getElementById("canvas-container");
+		// // particlesClass.resize(container.width, container.height);
+		// console.log(container.width;
+		// particlesClass.resize();
+		particlesClass.resize(550, 550);
 	});
 }
 
@@ -408,9 +412,9 @@ ParticlesClass.prototype.updateCamera = function() {
 /*
  * Updates the canvas, viewport, and camera based on the new dimensions.
  */
-ParticlesClass.prototype.resize = function() {
-	// this.canvas.width = window.innerWidth / 2;
-	// this.canvas.height = window.innerWidth / 2;
+ParticlesClass.prototype.resize = function(canvasContainerWidth, canvasContainerHeight) {
+	this.canvas.width = canvasContainerWidth * 0.9;
+	this.canvas.height = canvasContainerHeight * 0.8;
 
 	this.renderer.setSize( this.canvas.width, this.canvas.height );
 

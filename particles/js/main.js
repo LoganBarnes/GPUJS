@@ -32,7 +32,7 @@ $('#start-stop-button').click(function(){
 $('#submit-button').click(function(){
     var result = editor.getValue();
 
-    particlesClass.reset();
+    // particlesClass.reset();
     particlesClass.setShader(result);
 });
 

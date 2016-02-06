@@ -170,11 +170,9 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 	if (passData.texData[0].elements !== undefined)
 		outputSize = passData.texData[0].elements;
 
-	var len = passData.texData.length;
-
-	var dataRTs = new Array(len);
-	var textures = new Array(len);
-	var dataDims = new Array(len * 3);
+	var dataRTs = new Array(passData.texData.length);
+	var textures = new Array(passData.texData.length);
+	var dataDims = new Array(passData.texData.length * 3);
 
 	for (var i = 0; i < passData.texData.length; i++) {
 		var texData = passData.texData[i];
@@ -331,11 +329,6 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 	if (!this.checkPassExists(passName))
 		return;
 
-	if (passData.texData === undefined) {
-		console.error("'texData' must be defined");
-		return;
-	}
-
 	numPrevPasses = numPrevPasses === undefined ? 1 : numPrevPasses;
 
 	var numPasses = this.getNumPasses(passName);
@@ -349,7 +342,11 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 	if (passData.outputHeight)
 		outputHeight = passData.outputHeight;
 
-	var len = passData.texData.length + numPrevPasses;
+	var shader = libLocation + "shaders/default.frag";
+	if (passData.shader !== undefined)
+		shader = passData.shader;
+
+	var len = passData.texData.length + 1;
 
 	var dataRTs = new Array(len);
 	var textures = new Array(len);
@@ -436,11 +433,8 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 
 	var resultDim = [ outputWidth, outputHeight, outputWidth * outputHeight ];
 
-	var swapX = false;
-	if (passData.swapX !== undefined)
-		swapX = passData.swapX;
 
-	// "scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded swapX nextPass"
+	// "scene mesh textures dataDims resultRT resultDim fvars loaded nextPass"
 	var solverPass = new this.SolverPass(
 		new THREE.Scene(),
 		null,		// mesh (set in async method)
@@ -449,12 +443,18 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 		dataDims,
 		resultRT,
 		resultDim,
-		(passData.fvars !== undefined ? passData.fvars : []),
 		false,		// loaded
-		swapX,
 		null);      // next pass
 
+
 	prevPass.nextPass = solverPass;
+
+	var swapX = false;
+	if (passData.swapX !== undefined)
+		swapX = passData.swapX;
+
+	// for use in async method
+	var gpuLib = this;
 
 }
 
@@ -645,6 +645,7 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 	if (this.checkPassExists(passName)) {
 		var solverPass = this.getPass(passName, passNum);
 		var scene = solverPass.scene;
+		console.log(solverPass);
 		
 		// clear scene
 		for(var i = scene.children.length-1; i >= 0; i--){
@@ -663,6 +664,8 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 		var shaderText =  "const int numTex = " + Math.max(1, solverPass.textures.length) + ";\n"
 						+ "const int numVars = " + Math.max(1, solverPass.fvars.length) + ";\n"
 						+ fragTopString + text + fragBottomString;
+
+console.log(shaderText);
 
 		// create sovler program
 		solverPass.mesh = new THREE.Mesh(

@@ -1,0 +1,23 @@
+
+int filterRadius = 5;
+
+const int rStart = -5;
+const int rEnd = 5;
+for (int r = rStart; r <= rEnd; r++)
+{
+	int row = _y + r;
+
+	const int cStart = -5;
+	const int cEnd = 5;
+	for (int c = cStart; c <= cEnd; c++)
+	{
+		int col = _x + c;
+
+		data += texture2D(textures[0], (vec2(col, row) + vec2(0.5)) / vec2(texDims[0]));
+	}
+}
+
+int total = filterRadius * 2 + 1;
+total *= total;
+
+data /= float(total);

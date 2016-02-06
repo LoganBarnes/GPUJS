@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 <html>
-	<head>
+    <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<meta charset="utf-8">
-		<title>Filters</title>
-                <meta name="description" content="">
+        <meta charset="utf-8">
+        <title>Filters</title>
+        <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="icon" href="menu/res/images/favicon.ico" type="image/x-icon" />
 
         <link rel="stylesheet" href="/gpu.js/common/css/normalize.min.css">
         <link rel="stylesheet" href="/gpu.js/common/css/main.css">
+        <link rel="stylesheet" href="css/filters.css">
 
-        <script src="/gpu.js/common/thirdparty/modernizr-2.8.3.min.js"></script>
-	</head>
-	<body>
+    </head>
+
+    <body>
 
         <div class="header-container">
             <header class="wrapper clearfix">
-                <h1 class="title">GPU.js Filter</h1>
+                <h1 class="title">GPU.js Filters</h1>
                 <nav>
                     <ul>
                         <li><a href="/gpu.js/index.html">Home</a></li>
@@ -33,10 +34,52 @@
         <div class="main-container">
 
             <div class="main wrapper clearfix">
-                <h2>Filter Page</h2>
 
+                <h2>Filters Page</h2>
+
+                <section>
+
+                <!-- Canvas for three.js -->
+                <div class="left test" id="canvas-container">
+                    <h3 class="inline">Output</h3>
+
+                    <div class="inline float-right">
+                        <button id="start-stop-button">Pause</button>
+                    </div>
+
+                    <canvas id="filters-canvas" width="500px" height="500px">
+                    </canvas>
+                </div>
+
+                <!-- User input section -->
+                <div class="right" id="editor-container">
+                    
+                    <h3 class="inline">Enter Code Here</h3>
+
+                    <div class="inline float-right">
+                        <button id="reset-button">Reset</button>
+                        <button id="submit-button">Submit</button>
+                    </div>
+
+                    <!-- uneditable code goes here -->
+
+                    <!-- Text editor for user input of code -->
+                    <pre id="filters-editor"></pre>
+
+                    <!-- uneditable code goes here -->
+
+                </div>
+
+                </section>
+    
+                <video id="video">
+                    Not sure where to put this yet
+                </video>
+                
             </div> <!-- #main -->
+
         </div> <!-- #main-container -->
+
 
         <div class="footer-container">
             <footer class="wrapper">
@@ -45,5 +88,31 @@
             </footer>
         </div>
 
-	</body>
+        <!--============================================
+        ================ SCRIPTING LAND ================
+        =============================================-->
+
+        <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+        <script>!window.jQuery && document.write('<script src="/gpu.js/common/thirdparty/jquery.min.js"><\/script>')</script>
+
+        <script src="/gpu.js/common/thirdparty/modernizr-2.8.3.min.js"></script>
+
+        <!-- ace.js code editor -->
+        <script src="/gpu.js/common/thirdparty/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- load necessary scripts and start the render loop -->
+        <script type="text/javascript" src="/gpu.js/common/thirdparty/scriptLoader.js"></script>
+        <script type="text/javascript">
+            loadScripts([   "/gpu.js/common/thirdparty/util.min.js",
+                            "/gpu.js/common/thirdparty/three.min.js",
+                            "/gpu.js/common/gpujs/gpu.js",
+                            "js/filters.js",
+                            "js/main.js"],
+                function() {
+
+                });
+        </script>
+
+    </body>
 </html>
