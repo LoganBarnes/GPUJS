@@ -77,35 +77,47 @@ ParticlesClass.prototype.init = function(renderShader) {
 
 	var dist = velocity * this.oldDeltaTime;
 
-	var prevInitialArray = new Float32Array(numParticles * 4);
-	for (var i = 0; i < numParticles; ++i) {
-		var index = i * 4;
-		prevInitialArray[index  ] = Math.random() * radius * 2.0 - radius;
-		prevInitialArray[index+1] = Math.random() * radius * 2.0 - radius;
-		prevInitialArray[index+2] = Math.random() * radius * 2.0 - radius;
-		prevInitialArray[index+3] = 1.0;
-	}
+	var gpuSolver = this.gpuSolver;
+	var oldDeltaTime = this.oldDeltaTime;
+	var deltaTime = this.deltaTime;
 
-	var currInitialArray = new Float32Array(numParticles * 4);
-	for (var i = 0; i < numParticles; ++i) {
-		var index = i * 4;
-		currInitialArray[index  ] = prevInitialArray[index  ] + Math.random() * dist * 2 - dist;
-		currInitialArray[index+1] = prevInitialArray[index+1] + Math.random() * dist * 2 - dist;
-		currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist * 2 - dist;
-		currInitialArray[index+3] = 1.0;
-	}
-	
-	this.gpuSolver.addInitialPass("solver", {
-		texData: [ {
-			texInput: currInitialArray,
-			inputType: InputType.ROTATING
-		},
-		{
-			texInput: prevInitialArray,
-			inputType: InputType.ROTATING
-		} ],
-		fvars: [this.oldDeltaTime, this.oldDeltaTime]
-	});
+	this.gpuSolver.setInitialFunction("solver", function() {		
+
+		var prevInitialArray = new Float32Array(numParticles * 4);
+		for (var i = 0; i < numParticles; ++i) {
+			var index = i * 4;
+			prevInitialArray[index  ] = Math.random() * radius * 2.0 - radius;
+			prevInitialArray[index+1] = Math.random() * radius * 2.0 - radius;
+			prevInitialArray[index+2] = Math.random() * radius * 2.0 - radius;
+			prevInitialArray[index+3] = 1.0;
+		}
+
+		var currInitialArray = new Float32Array(numParticles * 4);
+		for (var i = 0; i < numParticles; ++i) {
+			var index = i * 4;
+			currInitialArray[index  ] = prevInitialArray[index  ] + Math.random() * dist * 2 - dist;
+			currInitialArray[index+1] = prevInitialArray[index+1] + Math.random() * dist * 2 - dist;
+			currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist * 2 - dist;
+			currInitialArray[index+3] = 1.0;
+		}
+		
+		var passData = {
+			texData: [ {
+				texInput: currInitialArray,
+				inputType: InputType.ROTATING
+			},
+			{
+				texInput: prevInitialArray,
+				inputType: InputType.ROTATING
+			} ],
+			fvars: [oldDeltaTime, oldDeltaTime]
+		};
+ 
+		return passData;
+
+	}); // end setInitialFunction
+
+
 
 	/*
 	 * GPU SOLVER METHODS TO INTEGRATE WITH RENDERING
@@ -125,6 +137,9 @@ ParticlesClass.prototype.init = function(renderShader) {
 	var passWidth = this.gpuSolver.getSolverResultWidth("solver");
 	var passHeight = this.gpuSolver.getSolverResultHeight("solver");
 	var passSize = this.gpuSolver.getSolverResultSize("solver");
+
+
+
 
 
 	/*
@@ -190,42 +205,7 @@ ParticlesClass.prototype.init = function(renderShader) {
 }
 
 ParticlesClass.prototype.reset = function() {
-	var numParticles = 1000;
-	this.oldDeltaTime = 0.02;
-	var radius = 2.5;
-	var velocity = 3;
-
-	var dist = velocity * this.oldDeltaTime;
-
-	var prevInitialArray = new Float32Array(numParticles * 4);
-	for (var i = 0; i < numParticles; ++i) {
-		var index = i * 4;
-		prevInitialArray[index  ] = Math.random() * radius * 2.0 - radius;
-		prevInitialArray[index+1] = Math.random() * radius * 2.0 - radius;
-		prevInitialArray[index+2] = Math.random() * radius * 2.0 - radius;
-		prevInitialArray[index+3] = 1.0;
-	}
-
-	var currInitialArray = new Float32Array(numParticles * 4);
-	for (var i = 0; i < numParticles; ++i) {
-		var index = i * 4;
-		currInitialArray[index  ] = prevInitialArray[index  ] + Math.random() * dist * 2 - dist;
-		currInitialArray[index+1] = prevInitialArray[index+1] + Math.random() * dist * 2 - dist;
-		currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist * 2 - dist;
-		currInitialArray[index+3] = 1.0;
-	}
-	
-	this.gpuSolver.resetPass("solver", {
-		texData: [ {
-			texInput: currInitialArray,
-			inputType: InputType.ROTATING
-		},
-		{
-			texInput: prevInitialArray,
-			inputType: InputType.ROTATING
-		} ],
-		fvars: [this.oldDeltaTime, this.oldDeltaTime]
-	});
+	this.gpuSolver.reinitialize("solver");
 }
 
 

@@ -82,6 +82,20 @@ var InputType = Object.freeze({
 });
 
 
+/*
+                                                                                
+    ,o888888o.    8 888888888o   8 8888      88            8 8888   d888888o.   
+   8888     `88.  8 8888    `88. 8 8888      88            8 8888 .`8888:' `88. 
+,8 8888       `8. 8 8888     `88 8 8888      88            8 8888 8.`8888.   Y8 
+88 8888           8 8888     ,88 8 8888      88            8 8888 `8.`8888.     
+88 8888           8 8888.   ,88' 8 8888      88            8 8888  `8.`8888.    
+88 8888           8 888888888P'  8 8888      88            8 8888   `8.`8888.   
+88 8888   8888888 8 8888         8 8888      88 88.        8 8888    `8.`8888.  
+`8 8888       .8' 8 8888         ` 8888     ,8P `88.       8 888'8b   `8.`8888. 
+   8888     ,88'  8 8888           8888   ,d8P    `88o.    8 88' `8b.  ;8.`8888 
+    `8888888P'    8 8888            `Y88888P'       `Y888888 '    `Y8888P ,88P' 
+*/
+
 /**
  *  GPU Solver class
  */
@@ -112,6 +126,7 @@ var GPU = function(width, height, canvasId) {
 	this.renderer.setClearColor( 0x000000, 1 );
 
 	this.canvas = this.renderer.domElement;
+	this.initialFunction = null;
 };
 
 
@@ -132,6 +147,29 @@ GPU.prototype.getRenderer = function() {
 
 
 /**
+ *
+ */
+GPU.prototype.setInitialFunction = function(passName, fun) {
+	this.initialFunction = fun;
+	this.addInitialPass(passName, this.initialFunction());
+};
+
+
+/*
+                                                                                         
+8 888888888o      .8.            d888888o.      d888888o.   8 8888888888     d888888o.   
+8 8888    `88.   .888.         .`8888:' `88.  .`8888:' `88. 8 8888         .`8888:' `88. 
+8 8888     `88  :88888.        8.`8888.   Y8  8.`8888.   Y8 8 8888         8.`8888.   Y8 
+8 8888     ,88 . `88888.       `8.`8888.      `8.`8888.     8 8888         `8.`8888.     
+8 8888.   ,88'.8. `88888.       `8.`8888.      `8.`8888.    8 888888888888  `8.`8888.    
+8 888888888P'.8`8. `88888.       `8.`8888.      `8.`8888.   8 8888           `8.`8888.   
+8 8888      .8' `8. `88888.       `8.`8888.      `8.`8888.  8 8888            `8.`8888.  
+8 8888     .8'   `8. `88888.  8b   `8.`8888. 8b   `8.`8888. 8 8888        8b   `8.`8888. 
+8 8888    .888888888. `88888. `8b.  ;8.`8888 `8b.  ;8.`8888 8 8888        `8b.  ;8.`8888 
+8 8888   .8'       `8. `88888. `Y8888P ,88P'  `Y8888P ,88P' 8 888888888888 `Y8888P ,88P' 
+*/
+
+/**
  *  
  *  passData = {
  *  	texInput (image, required),
@@ -144,187 +182,29 @@ GPU.prototype.getRenderer = function() {
  */
 GPU.prototype.addInitialPass = function(passName, passData) {
 
-	if (passData.texData === undefined) {
-		console.error("'texData' must be defined");
-		return;
-	}
-	if (passData.texData[0].texInput === undefined || passData.texData[0].texInput === null) {
-		console.error("the first texInput of 'texData' must be defined");
-		return;
-	}
-
-	// set these dynamically based on input image
-	var outputWidth = 0;
-	var  outputHeight = 0;
-	if (passData.outputWidth)
-		outputWidth = passData.outputWidth;
-	else if (passData.texData[0].texInput.width !== undefined)
-		outputWidth = passData.texData[0].texInput.width;
-
-	if (passData.outputHeight)
-		outputHeight = passData.outputHeight;
-	else if (passData.texData[0].texInput.height !== undefined)
-		outputHeight = passData.texData[0].texInput.height;
-
-	var outputSize = outputWidth * outputHeight;
-	if (passData.texData[0].elements !== undefined)
-		outputSize = passData.texData[0].elements;
-
-	var len = passData.texData.length;
-
-	var dataRTs = new Array(len);
-	var textures = new Array(len);
-	var dataDims = new Array(len * 3);
-
-	for (var i = 0; i < passData.texData.length; i++) {
-		var texData = passData.texData[i];
-		var texInput = texData.texInput;
-
-		var flipY = false;
-		if (texData.flipY !== undefined)
-			flipY = texData.flipY;
-
-		var w = 0;
-		var h = 0;
-
-		if (texData.width !== undefined)
-			w = texData.width;
-		else if (texInput.width !== undefined)
-			w = texInput.width;
-
-		if (texData.height !== undefined)
-			h = texData.height;
-		else if (texInput.height !== undefined)
-			h = texInput.width;
-
-		var size = w * h;
-		if (texData.elements !== undefined)
-			size = elements;
-		
-		if (texInput) {
-
-			var texture;
-			switch (texData.inputType) {
-
-			case InputType.TEXTURE:
-				texture = texInput;
-				break;
-			case InputType.IMG_VID:
-				texture = new THREE.Texture( texInput );
-				break;
-			case InputType.ARRAY:
-				if (!w || !h) {
-					w = next_pow2(Math.sqrt(texInput.length / 4));
-					h = w;
-					size = texInput.length / 4;
-
-					if (!outputWidth || !outputHeight) {
-						outputWidth = w;
-						outputHeight = h;
-						outputSize = size;
-					}
-				}
-
-				var dataSize = w * h * 4;
-				if (dataSize > texInput.length) {
-					var padArray = new Float32Array(w * h * 4);
-					padArray.set(texInput);
-					texture = new THREE.DataTexture(padArray, w, h, THREE.RGBAFormat, THREE.FloatType );
-				} else {
-					texture = new THREE.DataTexture(texInput, w, h, THREE.RGBAFormat, THREE.FloatType );
-				}
-
-				break;
-			case InputType.ROTATING:
-				if (!w || !h) {
-					w = next_pow2(Math.sqrt(texInput.length / 4));
-					h = w;
-					size = texInput.length / 4;
-
-					if (!outputWidth || !outputHeight) {
-						outputWidth = w;
-						outputHeight = h;
-						outputSize = size;
-					}
-				}
-
-				var dataRT = new THREE.WebGLRenderTarget( outputWidth, outputHeight );
-				dataRT.texture.dispose();
-
-				var dataSize = w * h * 4;
-				if (dataSize > texInput.length) {
-					var padArray = new Float32Array(w * h * 4);
-					padArray.set(texInput);
-					dataRT.texture = new THREE.DataTexture(padArray, w, h, THREE.RGBAFormat, THREE.FloatType );
-				} else {
-					dataRT.texture = new THREE.DataTexture(texInput, w, h, THREE.RGBAFormat, THREE.FloatType );
-				}
-				texture = dataRT.texture;
-				dataRTs[i] = dataRT;
-
-				break;
-			default:
-				console.error("inputType: '" + texData.inputType + "' is not valid");
-				return;
-			}
-
-			
-			if (texData.linear !== undefined && texData.linear === true) {
-				texture.magFilter = THREE.LinearFilter;
-				texture.minFilter = THREE.LinearFilter;
-			} else {
-				texture.magFilter = THREE.NearestFilter;
-				texture.minFilter = THREE.NearestFilter;
-			}
-			texture.wrapT = THREE.ClampToEdgeWrapping;
-			texture.wrapS = THREE.ClampToEdgeWrapping;
-			texture.generateMipmaps = false;
-
-			texture.flipY = flipY;
-			texture.needsUpdate = true;
-
-			textures[i] = texture;
-		}
-
-		dataDims[i*3  ] = w;
-		dataDims[i*3+1] = h;
-		dataDims[i*3+2] = size;
-
-	}
-	
-	var resultRT = new THREE.WebGLRenderTarget(outputWidth, outputHeight );
-	resultRT.texture.dispose();
-	resultRT.texture = new THREE.DataTexture(null, outputWidth, outputHeight, THREE.RGBAFormat, THREE.FloatType );
-	resultRT.texture.magFilter = THREE.NearestFilter;
-	resultRT.texture.minFilter = THREE.NearestFilter;
-
-	var resultDim = [ outputWidth, outputHeight, outputWidth * outputHeight ];
-
-	var swapX = false;
-	if (passData.swapX !== undefined)
-		swapX = passData.swapX;
-
 	// "scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded swapX nextPass"
 	var solverPass = new this.SolverPass(
 		new THREE.Scene(),
 		null,		// mesh (set in async method)
-		textures,
-		dataRTs,
-		dataDims,
-		resultRT,
-		resultDim,
+		[],			// textures
+		[],			// dataRTs
+		[0, 0, 0],  // dataDims
+		[],			// resultRT
+		[0, 0, 0],  // resultDim
 		(passData.fvars !== undefined ? passData.fvars : []),
 		false,		// loaded
-		swapX,
+		false,      // swap X
 		null);      // next pass
 
 
 	this.passes[passName] = solverPass;
+
+	this.resetPass(passName, passData);
 };
 
 
 /**
- * TODO: UPDATE THIS FUNCTION SO IT MATCHES ^
+ * 
  */
 GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 
@@ -641,6 +521,39 @@ GPU.prototype.resetPass = function(passName, passData) {
 };
 
 
+/*
+                                                                            
+8 888888888o      .8.          8 888888888o.     d888888o.   8 8888888888   
+8 8888    `88.   .888.         8 8888    `88.  .`8888:' `88. 8 8888         
+8 8888     `88  :88888.        8 8888     `88  8.`8888.   Y8 8 8888         
+8 8888     ,88 . `88888.       8 8888     ,88  `8.`8888.     8 8888         
+8 8888.   ,88'.8. `88888.      8 8888.   ,88'   `8.`8888.    8 888888888888 
+8 888888888P'.8`8. `88888.     8 888888888P'     `8.`8888.   8 8888         
+8 8888      .8' `8. `88888.    8 8888`8b          `8.`8888.  8 8888         
+8 8888     .8'   `8. `88888.   8 8888 `8b.    8b   `8.`8888. 8 8888         
+8 8888    .888888888. `88888.  8 8888   `8b.  `8b.  ;8.`8888 8 8888         
+8 8888   .8'       `8. `88888. 8 8888     `88. `Y8888P ,88P' 8 888888888888 
+*/
+
+GPU.prototype.parseShaderText = function() {
+	// TODO: make this
+}
+
+
+/*
+                                            .         .                                                                
+    ,o888888o.        ,o888888o.           ,8.       ,8.          8 888888888o    8 8888 8 8888         8 8888888888   
+   8888     `88.   . 8888     `88.        ,888.     ,888.         8 8888    `88.  8 8888 8 8888         8 8888         
+,8 8888       `8. ,8 8888       `8b      .`8888.   .`8888.        8 8888     `88  8 8888 8 8888         8 8888         
+88 8888           88 8888        `8b    ,8.`8888. ,8.`8888.       8 8888     ,88  8 8888 8 8888         8 8888         
+88 8888           88 8888         88   ,8'8.`8888,8^8.`8888.      8 8888.   ,88'  8 8888 8 8888         8 888888888888 
+88 8888           88 8888         88  ,8' `8.`8888' `8.`8888.     8 888888888P'   8 8888 8 8888         8 8888         
+88 8888           88 8888        ,8P ,8'   `8.`88'   `8.`8888.    8 8888          8 8888 8 8888         8 8888         
+`8 8888       .8' `8 8888       ,8P ,8'     `8.`'     `8.`8888.   8 8888          8 8888 8 8888         8 8888         
+   8888     ,88'   ` 8888     ,88' ,8'       `8        `8.`8888.  8 8888          8 8888 8 8888         8 8888         
+    `8888888P'        `8888888P'  ,8'         `         `8.`8888. 8 8888          8 8888 8 888888888888 8 888888888888 
+*/
+
 GPU.prototype.compileShaderText = function(passName, passNum, text) {
 	if (this.checkPassExists(passName)) {
 		var solverPass = this.getPass(passName, passNum);
@@ -686,6 +599,31 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 	}
 };
 
+
+/*
+                                               
+8 888888888o.  8 8888      88 b.             8 
+8 8888    `88. 8 8888      88 888o.          8 
+8 8888     `88 8 8888      88 Y88888o.       8 
+8 8888     ,88 8 8888      88 .`Y888888o.    8 
+8 8888.   ,88' 8 8888      88 8o. `Y888888o. 8 
+8 888888888P'  8 8888      88 8`Y8o. `Y88888o8 
+8 8888`8b      8 8888      88 8   `Y8o. `Y8888 
+8 8888 `8b.    ` 8888     ,8P 8      `Y8o. `Y8 
+8 8888   `8b.    8888   ,d8P  8         `Y8o.` 
+8 8888     `88.   `Y88888P'   8            `Yo 
+*/
+
+
+/**
+ *
+ */
+GPU.prototype.reinitialize = function(passName) {
+	if (this.initialFunction != null)
+		this.resetPass(passName, this.initialFunction());
+	else
+		console.error("reinitialize() can't be used until addInitialPass() is used.");
+};
 
 /**
  * return true if passName exists, false otherwise

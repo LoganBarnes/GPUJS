@@ -82,6 +82,20 @@ var InputType = Object.freeze({
 });
 
 
+/*
+                                                                                
+    ,o888888o.    8 888888888o   8 8888      88            8 8888   d888888o.   
+   8888     `88.  8 8888    `88. 8 8888      88            8 8888 .`8888:' `88. 
+,8 8888       `8. 8 8888     `88 8 8888      88            8 8888 8.`8888.   Y8 
+88 8888           8 8888     ,88 8 8888      88            8 8888 `8.`8888.     
+88 8888           8 8888.   ,88' 8 8888      88            8 8888  `8.`8888.    
+88 8888           8 888888888P'  8 8888      88            8 8888   `8.`8888.   
+88 8888   8888888 8 8888         8 8888      88 88.        8 8888    `8.`8888.  
+`8 8888       .8' 8 8888         ` 8888     ,8P `88.       8 888'8b   `8.`8888. 
+   8888     ,88'  8 8888           8888   ,d8P    `88o.    8 88' `8b.  ;8.`8888 
+    `8888888P'    8 8888            `Y88888P'       `Y888888 '    `Y8888P ,88P' 
+*/
+
 /**
  *  GPU Solver class
  */
@@ -131,6 +145,20 @@ GPU.prototype.getRenderer = function() {
 };
 
 
+/*
+                                                                                         
+8 888888888o      .8.            d888888o.      d888888o.   8 8888888888     d888888o.   
+8 8888    `88.   .888.         .`8888:' `88.  .`8888:' `88. 8 8888         .`8888:' `88. 
+8 8888     `88  :88888.        8.`8888.   Y8  8.`8888.   Y8 8 8888         8.`8888.   Y8 
+8 8888     ,88 . `88888.       `8.`8888.      `8.`8888.     8 8888         `8.`8888.     
+8 8888.   ,88'.8. `88888.       `8.`8888.      `8.`8888.    8 888888888888  `8.`8888.    
+8 888888888P'.8`8. `88888.       `8.`8888.      `8.`8888.   8 8888           `8.`8888.   
+8 8888      .8' `8. `88888.       `8.`8888.      `8.`8888.  8 8888            `8.`8888.  
+8 8888     .8'   `8. `88888.  8b   `8.`8888. 8b   `8.`8888. 8 8888        8b   `8.`8888. 
+8 8888    .888888888. `88888. `8b.  ;8.`8888 `8b.  ;8.`8888 8 8888        `8b.  ;8.`8888 
+8 8888   .8'       `8. `88888. `Y8888P ,88P'  `Y8888P ,88P' 8 888888888888 `Y8888P ,88P' 
+*/
+
 /**
  *  
  *  passData = {
@@ -170,9 +198,11 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 	if (passData.texData[0].elements !== undefined)
 		outputSize = passData.texData[0].elements;
 
-	var dataRTs = new Array(passData.texData.length);
-	var textures = new Array(passData.texData.length);
-	var dataDims = new Array(passData.texData.length * 3);
+	var len = passData.texData.length;
+
+	var dataRTs = new Array(len);
+	var textures = new Array(len);
+	var dataDims = new Array(len * 3);
 
 	for (var i = 0; i < passData.texData.length; i++) {
 		var texData = passData.texData[i];
@@ -322,12 +352,17 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 
 
 /**
- * TODO: UPDATE THIS FUNCTION SO IT MATCHES ^
+ * 
  */
 GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 
 	if (!this.checkPassExists(passName))
 		return;
+
+	if (passData.texData === undefined) {
+		console.error("'texData' must be defined");
+		return;
+	}
 
 	numPrevPasses = numPrevPasses === undefined ? 1 : numPrevPasses;
 
@@ -342,11 +377,7 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 	if (passData.outputHeight)
 		outputHeight = passData.outputHeight;
 
-	var shader = libLocation + "shaders/default.frag";
-	if (passData.shader !== undefined)
-		shader = passData.shader;
-
-	var len = passData.texData.length + 1;
+	var len = passData.texData.length + numPrevPasses;
 
 	var dataRTs = new Array(len);
 	var textures = new Array(len);
@@ -433,8 +464,11 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 
 	var resultDim = [ outputWidth, outputHeight, outputWidth * outputHeight ];
 
+	var swapX = false;
+	if (passData.swapX !== undefined)
+		swapX = passData.swapX;
 
-	// "scene mesh textures dataDims resultRT resultDim fvars loaded nextPass"
+	// "scene mesh textures dataRTs dataDims resultRT resultDim fvars loaded swapX nextPass"
 	var solverPass = new this.SolverPass(
 		new THREE.Scene(),
 		null,		// mesh (set in async method)
@@ -443,18 +477,12 @@ GPU.prototype.connectPass = function(passName, passData, numPrevPasses) {
 		dataDims,
 		resultRT,
 		resultDim,
+		(passData.fvars !== undefined ? passData.fvars : []),
 		false,		// loaded
+		swapX,
 		null);      // next pass
 
-
 	prevPass.nextPass = solverPass;
-
-	var swapX = false;
-	if (passData.swapX !== undefined)
-		swapX = passData.swapX;
-
-	// for use in async method
-	var gpuLib = this;
 
 }
 
@@ -641,11 +669,43 @@ GPU.prototype.resetPass = function(passName, passData) {
 };
 
 
+/*
+                                                                            
+8 888888888o      .8.          8 888888888o.     d888888o.   8 8888888888   
+8 8888    `88.   .888.         8 8888    `88.  .`8888:' `88. 8 8888         
+8 8888     `88  :88888.        8 8888     `88  8.`8888.   Y8 8 8888         
+8 8888     ,88 . `88888.       8 8888     ,88  `8.`8888.     8 8888         
+8 8888.   ,88'.8. `88888.      8 8888.   ,88'   `8.`8888.    8 888888888888 
+8 888888888P'.8`8. `88888.     8 888888888P'     `8.`8888.   8 8888         
+8 8888      .8' `8. `88888.    8 8888`8b          `8.`8888.  8 8888         
+8 8888     .8'   `8. `88888.   8 8888 `8b.    8b   `8.`8888. 8 8888         
+8 8888    .888888888. `88888.  8 8888   `8b.  `8b.  ;8.`8888 8 8888         
+8 8888   .8'       `8. `88888. 8 8888     `88. `Y8888P ,88P' 8 888888888888 
+*/
+
+GPU.prototype.parseShaderText = function() {
+	// TODO: make this
+}
+
+
+/*
+                                            .         .                                                                
+    ,o888888o.        ,o888888o.           ,8.       ,8.          8 888888888o    8 8888 8 8888         8 8888888888   
+   8888     `88.   . 8888     `88.        ,888.     ,888.         8 8888    `88.  8 8888 8 8888         8 8888         
+,8 8888       `8. ,8 8888       `8b      .`8888.   .`8888.        8 8888     `88  8 8888 8 8888         8 8888         
+88 8888           88 8888        `8b    ,8.`8888. ,8.`8888.       8 8888     ,88  8 8888 8 8888         8 8888         
+88 8888           88 8888         88   ,8'8.`8888,8^8.`8888.      8 8888.   ,88'  8 8888 8 8888         8 888888888888 
+88 8888           88 8888         88  ,8' `8.`8888' `8.`8888.     8 888888888P'   8 8888 8 8888         8 8888         
+88 8888           88 8888        ,8P ,8'   `8.`88'   `8.`8888.    8 8888          8 8888 8 8888         8 8888         
+`8 8888       .8' `8 8888       ,8P ,8'     `8.`'     `8.`8888.   8 8888          8 8888 8 8888         8 8888         
+   8888     ,88'   ` 8888     ,88' ,8'       `8        `8.`8888.  8 8888          8 8888 8 8888         8 8888         
+    `8888888P'        `8888888P'  ,8'         `         `8.`8888. 8 8888          8 8888 8 888888888888 8 888888888888 
+*/
+
 GPU.prototype.compileShaderText = function(passName, passNum, text) {
 	if (this.checkPassExists(passName)) {
 		var solverPass = this.getPass(passName, passNum);
 		var scene = solverPass.scene;
-		console.log(solverPass);
 		
 		// clear scene
 		for(var i = scene.children.length-1; i >= 0; i--){
@@ -664,8 +724,6 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 		var shaderText =  "const int numTex = " + Math.max(1, solverPass.textures.length) + ";\n"
 						+ "const int numVars = " + Math.max(1, solverPass.fvars.length) + ";\n"
 						+ fragTopString + text + fragBottomString;
-
-console.log(shaderText);
 
 		// create sovler program
 		solverPass.mesh = new THREE.Mesh(
@@ -688,6 +746,21 @@ console.log(shaderText);
 
 	}
 };
+
+
+/*
+                                               
+8 888888888o.  8 8888      88 b.             8 
+8 8888    `88. 8 8888      88 888o.          8 
+8 8888     `88 8 8888      88 Y88888o.       8 
+8 8888     ,88 8 8888      88 .`Y888888o.    8 
+8 8888.   ,88' 8 8888      88 8o. `Y888888o. 8 
+8 888888888P'  8 8888      88 8`Y8o. `Y88888o8 
+8 8888`8b      8 8888      88 8   `Y8o. `Y8888 
+8 8888 `8b.    ` 8888     ,8P 8      `Y8o. `Y8 
+8 8888   `8b.    8888   ,d8P  8         `Y8o.` 
+8 8888     `88.   `Y88888P'   8            `Yo 
+*/
 
 
 /**
