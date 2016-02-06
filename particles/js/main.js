@@ -98,15 +98,17 @@ function resetEditor() {
         editor.focus();
 
         if (particlesClass == null) {
-          var userRenderer = "res/shaders/render.frag";
-          particlesClass = new ParticlesClass("#particles-canvas");
-          particlesClass.init(userRenderer);
-          particlesClass.setShader(data);
+            var userRenderer = "res/shaders/render.frag";
+            particlesClass = new ParticlesClass("#particles-canvas");
+            particlesClass.init(userRenderer);
+            particlesClass.setShader(data);
 
-          particlesClass.tick();
+            particlesClass.tick();
         } else {
-          particlesClass.reset();
-          particlesClass.setShader(data);
+            particlesClass.reset();
+            particlesClass.setShader(data);
+            if (particlesClass.paused)
+                particlesClass.tick();
         }
     });
 }

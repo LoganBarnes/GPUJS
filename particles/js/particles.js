@@ -228,6 +228,7 @@ ParticlesClass.prototype.setShader = function(text) {
  8 8888 8            `Yo 8 8888            `Y88888P'         8 8888       
 */
 
+
 /*
  * Mouse Events
  */

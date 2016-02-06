@@ -9,53 +9,52 @@ void main(void) { \
 ";
 
 var fragTopString = " \
-/* input data and dimensions */ \
-uniform sampler2D textures[ numTex ]; \
-uniform ivec3 texDims[ numTex ]; \
- \
-/* output dimensions */ \
-uniform ivec3 outputDim; \
- \
-/* constant input variables (like time, scale, etc.) */ \
-uniform float fvars[ numVars ]; \
- \
-/* used to flip images over the vertical axis */ \
-uniform bool swapX; \
- \
- \
-vec4 user_FunctionMain(in int _x, in int _y, in int _index) \
-{ \
-	vec4 data = vec4(0.0); \
-	/* start user code */; \
+/* input data and dimensions */\n\
+uniform sampler2D textures[ numTex ];\n\
+uniform ivec3 texDims[ numTex ];\n\
+\n\
+/* output dimensions */\n\
+uniform ivec3 outputDim;\n\
+\n\
+/* constant input variables (like time, scale, etc.) */\n\
+uniform float fvars[ numVars ];\n\
+\n\
+/* used to flip images over the vertical axis */\n\
+uniform bool swapX;\n\
+\n\
+\n\
+vec4 user_FunctionMain(in int _x, in int _y, in int _index)\n\
+{\n\
+vec4 data = vec4(0.0);\n\
+/* start user code */;\n\
 ";
 
-
 var fragBottomString = " \
-	/* end user code */ \
-	return vec4(data); \
-} \
- \
- \
-void main(void) \
-{ \
-	/* 2D indices of current thread */ \
-	int threadX = int(floor(gl_FragCoord.x)); \
-	int threadY = int(floor(gl_FragCoord.y)); \
- \
-	/* 1D index of current thread */ \
-	int threadId = threadY * outputDim.x + threadX; \
- \
-	/* initialize output to zero */ \
-	gl_FragColor = vec4(0.0); \
- \
-	/* mostly for video input */ \
-	if (swapX) \
-		threadX = (outputDim.x - threadX) - 1; \
- \
-	/* bound check then execute user code */ \
-	if (threadX < outputDim.x && threadY < outputDim.y && threadId < outputDim.z) \
-		gl_FragColor = user_FunctionMain(threadX, threadY, threadId); \
-} \
+/* end user code */\n\
+return vec4(data);\n\
+}\n\
+\n\
+\n\
+void main(void)\n\
+{\n\
+	/* 2D indices of current thread */\n\
+	int threadX = int(floor(gl_FragCoord.x));\n\
+	int threadY = int(floor(gl_FragCoord.y));\n\
+\n\
+	/* 1D index of current thread */\n\
+	int threadId = threadY * outputDim.x + threadX;\n\
+\n\
+	/* initialize output to zero */\n\
+	gl_FragColor = vec4(0.0);\n\
+\n\
+	/* mostly for video input */\n\
+	if (swapX)\n\
+		threadX = (outputDim.x - threadX) - 1;\n\
+\n\
+	/* bound check then execute user code */\n\
+	if (threadX < outputDim.x && threadY < outputDim.y && threadId < outputDim.z)\n\
+		gl_FragColor = user_FunctionMain(threadX, threadY, threadId);\n\
+}\n\
 ";
 
 
@@ -95,6 +94,7 @@ var InputType = Object.freeze({
    8888     ,88'  8 8888           8888   ,d8P    `88o.    8 88' `8b.  ;8.`8888 
     `8888888P'    8 8888            `Y88888P'       `Y888888 '    `Y8888P ,88P' 
 */
+
 
 /**
  *  GPU Solver class
@@ -556,7 +556,24 @@ GPU.prototype.parseShaderText = function() {
 
 GPU.prototype.compileShaderText = function(passName, passNum, text) {
 	if (this.checkPassExists(passName)) {
+
 		var solverPass = this.getPass(passName, passNum);
+
+		var shaderText = "precision highp float;\nprecision highp int;\n\n"
+						+ "const int numTex = " + Math.max(1, solverPass.textures.length) + ";\n"
+						+ "const int numVars = " + Math.max(1, solverPass.fvars.length) + ";\n"
+						+ fragTopString;
+
+		var topStringLines = shaderText.split("\n").length - 1;
+
+		shaderText += text + fragBottomString;
+
+		var errors = this.checkForShaderErrors(shaderText, topStringLines);
+
+		if (errors != null) {
+			return;
+		}
+
 		var scene = solverPass.scene;
 		
 		// clear scene
@@ -564,7 +581,6 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 			scene.remove(scene.children[i]);
 		}
 
-	
 		var uniforms = {
 				textures: { type: "tv", value: solverPass.textures },
 				texDims: { type: "iv", value: solverPass.dataDims },
@@ -572,10 +588,6 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 				fvars: { type: "1fv", value: solverPass.fvars }, // gets reset
 				swapX: { type: "i", value: solverPass.swapX }
 			}
-
-		var shaderText =  "const int numTex = " + Math.max(1, solverPass.textures.length) + ";\n"
-						+ "const int numVars = " + Math.max(1, solverPass.fvars.length) + ";\n"
-						+ fragTopString + text + fragBottomString;
 
 		// create sovler program
 		solverPass.mesh = new THREE.Mesh(
@@ -597,6 +609,41 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 		console.log("added shader to pass " + passNum + " of '" + passName + "'");
 
 	}
+};
+
+
+GPU.prototype.checkForShaderErrors = function(shaderText, linesToSub) {
+	var gl = this.renderer.getContext();
+
+	var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+	// store and compile the shaders
+	gl.shaderSource(fragmentShader, shaderText);
+	gl.compileShader(fragmentShader);
+
+	// make sure the shader compiled successfully
+	if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+		var errorString = gl.getShaderInfoLog(fragmentShader);
+		var lines = errorString.split('\n');
+		errorString = "";
+
+		for (var i = 0; i < lines.length - 1; ++i) {
+			var line  = lines[i].substring(9);
+			var num = parseInt(line, 10);
+			var numString = "" + num;
+			
+			line = line.substring(numString.length);
+			
+			num -= linesToSub;
+			
+			errorString += "ERROR " + num + line + "\n";				
+		}
+
+		alert(errorString);
+		return -1;
+	}
+
+	return null;
 };
 
 
