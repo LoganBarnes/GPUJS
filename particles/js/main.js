@@ -32,8 +32,27 @@ $('#start-stop-button').click(function(){
 $('#submit-button').click(function(){
     var result = editor.getValue();
 
-    // particlesClass.reset();
     particlesClass.setShader(result);
+});
+
+
+// attempt to compile shader when a change is made to the editor
+// (if the realtime checkbox is checked)
+editor.getSession().on('change', function () {
+
+    if (particlesClass != null && document.getElementById('realtime-checkbox').checked) {
+        var result = editor.getValue();
+        particlesClass.setShader(result);
+    }
+});
+
+
+// attempt to compile the editor text when the user initially clicks the realtime checkbox
+$('#realtime-checkbox').change(function() {
+    if(particlesClass != null && this.checked) {
+        var result = editor.getValue();
+        particlesClass.setShader(result);
+    }
 });
 
 
