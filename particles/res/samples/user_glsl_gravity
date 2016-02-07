@@ -1,0 +1,61 @@
+const float EPS2 = 0.01;
+const float gravityConstant = 0.05;
+
+vec4 currData = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[0]));
+vec4 prevData = texture2D(textures[1], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[1]));
+
+vec3 velocity = (currData.xyz - prevData.xyz) / fvars[1];
+
+int counter = 0;
+vec4 otherParticle;
+vec3 dir, force;
+float dist2, invDist;
+
+for (int r = 0; r < 32; r++)
+{
+	for (int c = 0; c < 32; c++)
+	{
+		// keep track of number of particles
+		if (counter > texDims[0].z)
+			break;
+		counter += 1;
+		
+		if ( _x == c && _y == r )
+		{
+			continue;
+		}
+		
+		otherParticle = texture2D(textures[0], (vec2(c, r) + vec2(0.5)) / vec2(texDims[0]));
+	
+	    dir = otherParticle.xyz - currData.xyz;
+		dist2 = dot(dir, dir) + EPS2;
+		
+		/*
+		 * gravitational equation:
+		 * f = |dir| * G * (m1 * m2) / r^2
+		 *
+		 * |dir|  -   normalized direction vector
+		 *   G    -   gravitational constant
+		 *   r 	  -   distance between m1 and m2 
+		 */
+
+		// this is the '|dir| * m2 / r^2' part
+		invDist = 1.0 / sqrt(dist2 * dist2 * dist2); // normalized then divided by dist^2
+		force += dir * (otherParticle.w * invDist);
+		
+	}
+	
+	if (counter > texDims[0].z)
+	    break;
+}
+
+// the 'G * m1' part of the above gravitational calculation
+force *= gravityConstant * currData.w;
+
+// v = v + a * t = v + (f / m) * t
+velocity += (force / currData.w) * fvars[0];
+
+// p = p + v * t
+vec3 newPos = currData.xyz + velocity * fvars[0];
+
+data = vec4(newPos, currData.w);

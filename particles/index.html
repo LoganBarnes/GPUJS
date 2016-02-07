@@ -57,17 +57,46 @@
                     <h3 class="inline">Enter Code Here</h3>
 
                     <div class="inline float-right">
+
+                    <select id="sample-selection">
+                        <option value="default" selected>Default</option>
+                        <option value="bounded">Bounded</option>
+                        <option value="gravity">Gravity</option>
+                        <!-- <option value="fluid">Fluid</option> -->
+                        <!-- <option value="colliders">Colliders</option> -->
+                    </select>
+
                         <button id="reset-button">Reset</button>
                         <button id="submit-button">Submit</button>
                         <input type="checkbox" id="realtime-checkbox" title="realtime submissions" checked>
                     </div>
 
-                    <!-- uneditable code goes here -->
+                    <div class="tab-container">
+                        <ul class="tabs">
+                            <!-- <li class="tab-link" data-tab="tab-1">Reset Code</li> -->
+                            <li class="tab-link current" data-tab="tab-2">Pass One</li>
+                        </ul>
 
-                    <!-- Text editor for user input of code -->
-                    <pre id="particles-editor"></pre>
+                        <!-- <div id="tab-1" class="tab-content"> -->
+                            <!-- uneditable code goes here -->
 
-                    <!-- uneditable code goes here -->
+                            <!-- Text editor for user input of code -->
+                            <!-- <pre id="particles-editor-reset" class="editor"></pre> -->
+
+                            <!-- uneditable code goes here -->
+                        <!-- </div>   -->
+
+                        <div id="tab-2" class="tab-content current">
+                            <!-- uneditable code goes here -->
+
+                            <!-- Text editor for user input of code -->
+                            <pre id="particles-editor-pass1" class="editor"></pre>
+
+                            <!-- uneditable code goes here -->
+                        </div>                        
+
+
+                    </div>
 
                 </div>
 

@@ -57,17 +57,31 @@
                     <h3 class="inline">Enter Code Here</h3>
 
                     <div class="inline float-right">
+                        <select id="sample-selection">
+                            <option value="default" selected>Default</option>
+                            <option value="grayscale">Grayscale</option>
+                            <option value="blur">Blur</option>
+                            <option value="edges">Edges</option>
+                        </select>
                         <button id="reset-button">Reset</button>
                         <button id="submit-button">Submit</button>
                         <input type="checkbox" id="realtime-checkbox" title="realtime submissions" checked>
                     </div>
 
-                    <!-- uneditable code goes here -->
+                    <div class="tab-container">
+                        <ul class="tabs">
+                            <li class="tab-link current" data-tab="tab-1">Pass One</li>
+                        </ul>
 
-                    <!-- Text editor for user input of code -->
-                    <pre id="filters-editor"></pre>
+                        <div id="tab-1" class="tab-content current">
+                            <!-- uneditable code goes here -->
 
-                    <!-- uneditable code goes here -->
+                            <!-- Text editor for user input of code -->
+                            <pre id="filters-editor"></pre>
+
+                            <!-- uneditable code goes here -->
+                        </div>                       
+                    </div>
 
                 </div>
 

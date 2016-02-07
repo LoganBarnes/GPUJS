@@ -600,13 +600,12 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 				vertexShader: vertString,
 				fragmentShader: shaderText
 			} )
-			// new THREE.MeshBasicMaterial( { color: 0x00ff00 } )
 		);
 
 		solverPass.scene.add( solverPass.mesh );
 
 		solverPass.loaded = true;
-		console.log("added shader to pass " + passNum + " of '" + passName + "'");
+		// console.log("added shader to pass " + passNum + " of '" + passName + "'");
 	}
 
 	return null;
@@ -863,14 +862,9 @@ GPU.prototype.rotateSolverTargets = function(passName) {
 	if (this.checkPassExists(passName))
 	{
 		var solverPass = this.getPass(passName, 0);
-
-		// console.log("solverPass:");
-		// console.log( solverPass.resultRT );
 		
 		var numRTs = solverPass.dataRTs.length;
 		var oldRT = solverPass.dataRTs[numRTs-1];
-		// console.log(numRTs);
-		// console.log(numRTs);
 
 		for (var i = numRTs-1; i > 0; i--) {
 			solverPass.dataRTs[i] = solverPass.dataRTs[i-1];
@@ -879,8 +873,6 @@ GPU.prototype.rotateSolverTargets = function(passName) {
 		solverPass.dataRTs[0] = solverPass.resultRT;
 		solverPass.textures[0] = solverPass.dataRTs[0];
 		solverPass.resultRT = oldRT;
-
-		// console.log(solverPass.resultRT);
 		
 		return true;	
 	}

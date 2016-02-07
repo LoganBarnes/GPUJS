@@ -1,0 +1,8 @@
+
+vec4 currData = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[0]));
+vec4 prevData = texture2D(textures[1], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[1]));
+
+vec3 velocity = (currData.xyz - prevData.xyz) / fvars[1];
+vec3 newPos = currData.xyz + velocity * fvars[0];
+
+data = vec4(newPos, currData.w);

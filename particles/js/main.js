@@ -1,11 +1,29 @@
 // On page load
 $(function() {
-    // Load text editor
-    editor = ace.edit("particles-editor");
-    editor.setTheme("ace/theme/twilight");
-    editor.session.setMode("ace/mode/glsl");
 
-    resetEditor();
+    $('ul.tabs li').click(function(){
+        var tab_id = $(this).attr('data-tab');
+
+        $('ul.tabs li').removeClass('current');
+        $('.tab-content').removeClass('current');
+
+        $(this).addClass('current');
+        $("#"+tab_id).addClass('current');
+    });
+
+    selector = document.getElementById('sample-selection');
+    
+    // // Load text editors
+    // resetEditor = ace.edit("particles-editor-reset");
+    // resetEditor.setTheme("ace/theme/twilight");
+    // resetEditor.session.setMode("ace/mode/javascript");
+
+    pass1Editor = ace.edit("particles-editor-pass1");
+    pass1Editor.setTheme("ace/theme/twilight");
+    pass1Editor.session.setMode("ace/mode/glsl");
+    pass1Editor.$blockScrolling = Infinity;
+
+    resetSimulation();
 });
 
 
@@ -30,7 +48,7 @@ $('#start-stop-button').click(function(){
 
 // Submit editor text
 $('#submit-button').click(function(){
-    var result = editor.getValue();
+    var result = pass1Editor.getValue();
 
     particlesClass.setShader(result);
 });
@@ -38,10 +56,10 @@ $('#submit-button').click(function(){
 
 // attempt to compile shader when a change is made to the editor
 // (if the realtime checkbox is checked)
-editor.getSession().on('change', function () {
+pass1Editor.getSession().on('change', function () {
 
     if (particlesClass != null && document.getElementById('realtime-checkbox').checked) {
-        var result = editor.getValue();
+        var result = pass1Editor.getValue();
         particlesClass.setShader(result);
     }
 });
@@ -50,86 +68,50 @@ editor.getSession().on('change', function () {
 // attempt to compile the editor text when the user initially clicks the realtime checkbox
 $('#realtime-checkbox').change(function() {
     if(particlesClass != null && this.checked) {
-        var result = editor.getValue();
+        var result = pass1Editor.getValue();
         particlesClass.setShader(result);
     }
 });
 
 
-// Reset editor text
-$('#reset-button').click(resetEditor);
-function resetEditor() {
+$('#sample-selection').on("change", loadShader);
 
-    $.get("res/user_sample_bouncers.txt", function(data) {
-        editor.setValue(data);
+function loadShader() {
+    var sampleType = selector.options[selector.selectedIndex].value
 
-        // var session = editor.getSession();
-        // var Range = ace.require("ace/range").Range;
+    $.get("res/samples/user_glsl_" + sampleType, function(data) {
+        pass1Editor.setValue(data);
 
-        // var header = new Range(0, 0, 3, 0);
-        // var marker_header = session.addMarker(header, "static-text");
-        // console.log(header);
+        pass1Editor.focus();
 
-        // var footer = new Range(5, 0, 5, 12);
-        // var marker_footer = session.addMarker(footer, "static-text");
-        // console.log(footer);
-        
-        // editor.keyBinding.addKeyboardHandler({
-        //     handleKeyboard : function(data, hash, keyString, keyCode, event) {
-        //         if (hash === -1 || (keyCode <= 40 && keyCode >= 37)) return false;
-        //         if (intersects(header) || intersects(footer)) {
-        //             return {command:"null", passEvent:false};
-        //         }
-        //     }
-        // });
-        
-        // before(editor, 'onPaste', preventReadonly);
-        // before(editor, 'onCut', preventReadonly);
-        
-        // header.start = session.doc.createAnchor(header.start);
-        // header.end = session.doc.createAnchor(header.end);
-        // header.end.$insertRight = true;
-        
-        // footer.start = session.doc.createAnchor(footer.start);
-        // footer.end = session.doc.createAnchor(footer.end);
-        // footer.end.$insertRight = true;
-        
-        // function before(obj, method, wrapper) {
-        //     var orig = obj[method];
-        //     obj[method] = function() {
-        //         var args = Array.prototype.slice.call(arguments);
-        //         return wrapper.apply(this, function(){
-        //             return orig.apply(obj, origArgs);
-        //         }, args);
-        //     }
-        //     return obj[method];
-        // }
-        
-        // function intersects(range) {
-        //     return editor.getSelectionRange().intersects(range);
-        // }
-        
-        // function preventReadonly(next) {
-        //     if (intersects(range)) return;
-        //     next();
-        // }
-
-        editor.focus();
-
-        if (particlesClass == null) {
-            var userRenderer = "res/shaders/render.frag";
-            particlesClass = new ParticlesClass("#particles-canvas");
-            particlesClass.init(userRenderer);
-            particlesClass.setShader(data);
-
-            particlesClass.tick();
-        } else {
-            particlesClass.reset();
+        if (particlesClass != null) {
             particlesClass.setShader(data);
             if (particlesClass.paused)
                 particlesClass.tick();
         }
     });
+}
+
+
+// Reset editor text
+$('#reset-button').click(resetSimulation);
+
+function resetSimulation() {
+
+    if (particlesClass == null) {
+        var userRenderer = "res/shaders/render.frag";
+        particlesClass = new ParticlesClass("#particles-canvas");
+        particlesClass.init(userRenderer);
+        loadShader();
+
+        particlesClass.tick();
+    } else {
+
+        particlesClass.reset();
+        particlesClass.setShader(pass1Editor.getValue());
+        if (particlesClass.paused)
+            particlesClass.tick();
+    }
 }
 
 

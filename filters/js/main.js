@@ -1,11 +1,25 @@
 // On page load
 $(function() {
+        
+    $('ul.tabs li').click(function(){
+        var tab_id = $(this).attr('data-tab');
+
+        $('ul.tabs li').removeClass('current');
+        $('.tab-content').removeClass('current');
+
+        $(this).addClass('current');
+        $("#"+tab_id).addClass('current');
+    });
+
+    selector = document.getElementById('sample-selection');
+
     // Load text editor
     editor = ace.edit("filters-editor");
     editor.setTheme("ace/theme/twilight");
     editor.session.setMode("ace/mode/glsl");
+    editor.$blockScrolling = Infinity;
 
-    resetEditor();
+    resetFilterer();
 });
 
 
@@ -57,26 +71,38 @@ $('#realtime-checkbox').change(function() {
 });
 
 
-// Reset editor text
-$('#reset-button').click(resetEditor);
-function resetEditor() {
+$('#sample-selection').on("change", loadShader);
 
-    $.get("res/user_sample_blur.txt", function(data) {
+function loadShader() {
+    var sampleType = selector.options[selector.selectedIndex].value
+
+    $.get("res/samples/user_glsl_" + sampleType, function(data) {
         editor.setValue(data);
 
         editor.focus();
 
-        if (filterer == null) {
-          filterer = new Filterer("#filters-canvas");
-          filterer.init();
-          filterer.setShader(data);
-
-          filterer.tick();
-        } else {
-          filterer.reset();
-          filterer.setShader(data);
+        if (filterer != null) {
+            filterer.setShader(data);
         }
     });
+}
+
+
+// Reset editor text
+$('#reset-button').click(resetFilterer);
+
+function resetFilterer() {
+
+    if (filterer == null) {
+        filterer = new Filterer("#filters-canvas");
+        filterer.init();
+        loadShader();
+
+        filterer.tick();
+    } else {
+        filterer.reset();
+        filterer.setShader(editor.getValue());
+    }
 }
 
 

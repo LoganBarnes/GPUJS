@@ -225,7 +225,7 @@ ParticlesClass.prototype.setShader = function(text) {
 			}
 		}
 	}
-	editor.getSession().setAnnotations(annotations);
+	pass1Editor.getSession().setAnnotations(annotations);
 
 }
 
