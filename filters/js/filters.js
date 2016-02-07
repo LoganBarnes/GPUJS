@@ -126,7 +126,22 @@ Filterer.prototype.reset = function() {
 Filterer.prototype.setShader = function(text) {
 	this.gpuSolver.compileShaderText("filter", 0,
 		"\ndata = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(outputDim));\n");
-	this.gpuSolver.compileShaderText("filter", 1, text);
+	var errors = this.gpuSolver.compileShaderText("filter", 1, text);
+	var annotations = [];
+
+	if (errors != null) {
+		annotations = new Array(errors.length);
+
+		for (var i = 0; i < annotations.length; ++i) {
+			annotations[i] = {
+				row: errors[i].lineNum - 1,
+				column: 0,
+				text: errors[i].lineText,
+				type: "error"
+			}
+		}
+	}
+	editor.getSession().setAnnotations(annotations);
 }
 
 

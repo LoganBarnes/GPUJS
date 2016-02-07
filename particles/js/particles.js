@@ -210,7 +210,23 @@ ParticlesClass.prototype.reset = function() {
 
 
 ParticlesClass.prototype.setShader = function(text) {
-	this.gpuSolver.compileShaderText("solver", 0, text);
+	var errors = this.gpuSolver.compileShaderText("solver", 0, text);
+	var annotations = [];
+
+	if (errors != null) {
+		annotations = new Array(errors.length);
+
+		for (var i = 0; i < annotations.length; ++i) {
+			annotations[i] = {
+				row: errors[i].lineNum - 1,
+				column: 0,
+				text: errors[i].lineText,
+				type: "error"
+			}
+		}
+	}
+	editor.getSession().setAnnotations(annotations);
+
 }
 
 

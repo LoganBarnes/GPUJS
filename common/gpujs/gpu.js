@@ -571,7 +571,7 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 		var errors = this.checkForShaderErrors(shaderText, topStringLines);
 
 		if (errors != null) {
-			return;
+			return errors;
 		}
 
 		var scene = solverPass.scene;
@@ -607,11 +607,15 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 
 		solverPass.loaded = true;
 		console.log("added shader to pass " + passNum + " of '" + passName + "'");
-
 	}
+
+	return null;
 };
 
 
+/**
+ *
+ */
 GPU.prototype.checkForShaderErrors = function(shaderText, linesToSub) {
 	var gl = this.renderer.getContext();
 
@@ -621,26 +625,27 @@ GPU.prototype.checkForShaderErrors = function(shaderText, linesToSub) {
 	gl.shaderSource(fragmentShader, shaderText);
 	gl.compileShader(fragmentShader);
 
+
 	// make sure the shader compiled successfully
 	if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
 		var errorString = gl.getShaderInfoLog(fragmentShader);
 		var lines = errorString.split('\n');
-		errorString = "";
 
-		for (var i = 0; i < lines.length - 1; ++i) {
-			var line  = lines[i].substring(9);
-			var num = parseInt(line, 10);
+		var errors = new Array(lines.length-1);
+
+		for (var i = 0; i < errors.length; ++i) {
+			var text  = lines[i].substring(9);
+			var num = parseInt(text, 10);
 			var numString = "" + num;
 			
-			line = line.substring(numString.length);
+			text = text.substring(numString.length);
 			
 			num -= linesToSub;
 			
-			errorString += "ERROR " + num + line + "\n";				
+			errors[i] = { lineNum: num, lineText: text };				
 		}
 
-		alert(errorString);
-		return -1;
+		return errors;
 	}
 
 	return null;
