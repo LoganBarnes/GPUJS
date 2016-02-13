@@ -209,8 +209,8 @@ ParticlesClass.prototype.reset = function() {
 }
 
 
-ParticlesClass.prototype.setShader = function(text) {
-	var errors = this.gpuSolver.compileShaderText("solver", 0, text);
+ParticlesClass.prototype.setShader = function(text, passNum) {
+	var errors = this.gpuSolver.compileShaderText("solver", passNum, text);
 	var annotations = [];
 
 	if (errors != null) {
@@ -225,9 +225,24 @@ ParticlesClass.prototype.setShader = function(text) {
 			}
 		}
 	}
-	pass1Editor.getSession().setAnnotations(annotations);
 
+	return annotations;
 }
+
+
+ParticlesClass.prototype.addFluidPass = function() {
+	this.gpuSolver.connectPass("solver", {
+		texData: []
+	});
+};
+
+
+
+ParticlesClass.prototype.removeFluidPass = function() {
+	if (this.gpuSolver.getNumPasses("solver") > 1) {
+		this.gpuSolver.disconnectPass("solver", 1);
+	}
+};
 
 
 /*

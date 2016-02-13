@@ -123,10 +123,8 @@ Filterer.prototype.reset = function() {
 }
 
 
-Filterer.prototype.setShader = function(text) {
-	this.gpuSolver.compileShaderText("filter", 0,
-		"\ndata = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(outputDim));\n");
-	var errors = this.gpuSolver.compileShaderText("filter", 1, text);
+Filterer.prototype.setShader = function(text, passNum) {
+	var errors = this.gpuSolver.compileShaderText("filter", passNum, text);
 	var annotations = [];
 
 	if (errors != null) {

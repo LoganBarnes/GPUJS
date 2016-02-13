@@ -203,6 +203,18 @@ GPU.prototype.addInitialPass = function(passName, passData) {
 };
 
 
+GPU.prototype.disconnectPass = function(passName, passNum) {
+	// TODO: connect pass after with pass before
+	// prevPass.next = pass.next;
+	if (this.checkPassExists(passName)) {
+		if (passNum < 1)
+			this.passes[passName] = null;
+		else
+			this.getPass(passName, passNum - 1).nextPass = null;
+	}
+};
+
+
 /**
  * 
  */
@@ -559,6 +571,9 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 
 		var solverPass = this.getPass(passName, passNum);
 
+		if (solverPass == null)
+			console.log(passName + " " + passNum);
+
 		var shaderText = "precision highp float;\nprecision highp int;\n\n"
 						+ "const int numTex = " + Math.max(1, solverPass.textures.length) + ";\n"
 						+ "const int numVars = " + Math.max(1, solverPass.fvars.length) + ";\n"
@@ -862,6 +877,7 @@ GPU.prototype.rotateSolverTargets = function(passName) {
 	if (this.checkPassExists(passName))
 	{
 		var solverPass = this.getPass(passName, 0);
+		var lastPass = this.getFinalPass(passName);
 		
 		var numRTs = solverPass.dataRTs.length;
 		var oldRT = solverPass.dataRTs[numRTs-1];
@@ -870,9 +886,9 @@ GPU.prototype.rotateSolverTargets = function(passName) {
 			solverPass.dataRTs[i] = solverPass.dataRTs[i-1];
 			solverPass.textures[i] = solverPass.dataRTs[i];
 		}
-		solverPass.dataRTs[0] = solverPass.resultRT;
+		solverPass.dataRTs[0] = lastPass.resultRT;
 		solverPass.textures[0] = solverPass.dataRTs[0];
-		solverPass.resultRT = oldRT;
+		lastPass.resultRT = oldRT;
 		
 		return true;	
 	}

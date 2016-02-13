@@ -47,7 +47,7 @@ $('#submit-button').click(function(){
     var result = editor.getValue();
 
     // filterer.reset();
-    filterer.setShader(result);
+    filterer.setShader(result, 1);
 });
 
 
@@ -57,7 +57,7 @@ editor.getSession().on('change', function () {
 
     if (filterer != null && document.getElementById('realtime-checkbox').checked) {
         var result = editor.getValue();
-        filterer.setShader(result);
+        filterer.setShader(result, 1);
     }
 });
 
@@ -66,14 +66,14 @@ editor.getSession().on('change', function () {
 $('#realtime-checkbox').change(function() {
     if(filterer != null && this.checked) {
         var result = editor.getValue();
-        filterer.setShader(result);
+        filterer.setShader(result, 1);
     }
 });
 
 
 $('#sample-selection').on("change", loadShader);
 
-function loadShader() {
+function loadShader(update) {
     var sampleType = selector.options[selector.selectedIndex].value
 
     $.get("res/samples/user_glsl_" + sampleType, function(data) {
@@ -81,8 +81,8 @@ function loadShader() {
 
         editor.focus();
 
-        if (filterer != null) {
-            filterer.setShader(data);
+        if (update !== undefined) {
+            filterer.setShader(data, 1);
         }
     });
 }
@@ -96,12 +96,13 @@ function resetFilterer() {
     if (filterer == null) {
         filterer = new Filterer("#filters-canvas");
         filterer.init();
-        loadShader();
+        filterer.setShader("\ndata = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(outputDim));\n", 0);
+        loadShader(true);
 
         filterer.tick();
     } else {
         filterer.reset();
-        filterer.setShader(editor.getValue());
+        filterer.setShader(editor.getValue(), 1);
     }
 }
 

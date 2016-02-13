@@ -62,7 +62,7 @@
                         <option value="default" selected>Default</option>
                         <option value="bounded">Bounded</option>
                         <option value="gravity">Gravity</option>
-                        <!-- <option value="fluid">Fluid</option> -->
+                        <option value="fluid">Fluid</option>
                         <!-- <option value="colliders">Colliders</option> -->
                     </select>
 
@@ -71,29 +71,26 @@
                         <input type="checkbox" id="realtime-checkbox" title="realtime submissions" checked>
                     </div>
 
-                    <div class="tab-container">
-                        <ul class="tabs">
-                            <!-- <li class="tab-link" data-tab="tab-1">Reset Code</li> -->
-                            <li class="tab-link current" data-tab="tab-2">Pass One</li>
+                    <div id='tab-div' class="tab-container">
+                        <ul id="tab-list" class="tabs">
+                            <li id="tab-1" class="tab-link tabs current" data-tab="tab-div1">Pass 1</li>
+                            <!-- <li class="tab-link" data-tab="tab-2">Pass 2</li> -->
+                            <li id="tab-add" class="tab-link" data-tab="tab-add">+</li>
                         </ul>
 
-                        <!-- <div id="tab-1" class="tab-content"> -->
-                            <!-- uneditable code goes here -->
-
-                            <!-- Text editor for user input of code -->
-                            <!-- <pre id="particles-editor-reset" class="editor"></pre> -->
-
-                            <!-- uneditable code goes here -->
-                        <!-- </div>   -->
-
-                        <div id="tab-2" class="tab-content current">
+                        <div id="tab-div1" class="tab-content current">
                             <!-- uneditable code goes here -->
 
                             <!-- Text editor for user input of code -->
                             <pre id="particles-editor-pass1" class="editor"></pre>
 
                             <!-- uneditable code goes here -->
-                        </div>                        
+                        </div> 
+
+                       <!--  <div id="tab-2" class="tab-content current">
+                            <pre id="particles-editor-pass2" class="editor"></pre>
+                        </div>  -->
+                       
 
 
                     </div>
