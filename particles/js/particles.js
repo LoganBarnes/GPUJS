@@ -26,6 +26,7 @@ var ParticlesClass = function (canvasId) {
 
 	this.canvasId = canvasId;
 	this.oldDeltaTime = 0.02;
+	this.deltaTime = 0.02;
 
 	// camera and mouse functionality
 	this.anglePhi = 90;
@@ -110,7 +111,8 @@ ParticlesClass.prototype.init = function(renderShader) {
 				texInput: prevInitialArray,
 				inputType: InputType.ROTATING
 			} ],
-			fvars: [oldDeltaTime, oldDeltaTime]
+			fvars: [oldDeltaTime, oldDeltaTime],
+			outputSize: numParticles
 		};
  
 		return passData;
@@ -198,7 +200,7 @@ ParticlesClass.prototype.init = function(renderShader) {
 
 		// var container = document.getElementById("canvas-container");
 		// // particlesClass.resize(container.width, container.height);
-		// console.log(container.width;
+		// console.log(container.width);
 		// particlesClass.resize();
 		particlesClass.resize(550, 550);
 	});
@@ -234,12 +236,16 @@ ParticlesClass.prototype.addFluidPass = function() {
 	this.gpuSolver.connectPass("solver", {
 		texData: []
 	});
+	this.gpuSolver.connectPass("solver", {
+		texData: []
+	}, 2);
 };
 
 
 
 ParticlesClass.prototype.removeFluidPass = function() {
-	if (this.gpuSolver.getNumPasses("solver") > 1) {
+	if (this.gpuSolver.getNumPasses("solver") > 0) {
+		this.gpuSolver.disconnectPass("solver", 2);
 		this.gpuSolver.disconnectPass("solver", 1);
 	}
 };
@@ -382,13 +388,11 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 8 8888     `88. 8 888888888888 8            `Yo 8 888888888P'      8 888888888888 8 8888     `88. 
 */
 
-
 ParticlesClass.prototype.tick = function() {
-	// this.paused = true;
 	if (!this.paused) {
 		requestAnimationFrame(this.tick.bind(this));
 	}
-	
+
 	if (this.gpuSolver.isPassLoaded("solver") && this.rendererLoaded) {
 
 		// update time

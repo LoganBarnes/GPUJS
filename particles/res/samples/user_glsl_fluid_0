@@ -1,80 +1,28 @@
 
-const float H = 2.0;       // kernel radius
-const float H2 = 4.0;      // H^2
-const float H6 = 64.0;     // H^6
-const float H9 = 512.0;    // H^9
-const float POLY6_COEFF = 0.00305992474; // 315 / (64 * pi * H9)
-const float SPIKEY_COEFF = 0.22381163872; // 45 / (pi * H6)
-
-const float FLUID_RELAXATION = 0.01; // epsilon used when calculating lambda
-const float K_P = 0.1;               // scales artificial pressure
-const float E_P = 4.0;               // exponent to art. pressure
-const float DQ_P = 0.2;              // between .1 and .3 (for art pressure)
-
-const float RO = 1.0;
+vec3 bounds = vec3(3);
+float damper = 0.5;
+vec3 gravity = vec3(0, -9.8, 0);
 
 vec4 currData = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[0]));
 vec4 prevData = texture2D(textures[1], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[1]));
 
-vec3 pos = currData.xyz;
-float m = currData.w;
+vec3 velocity = (currData.xyz - prevData.xyz) / 0.02;
+velocity += gravity * 0.02; // gravity
+vec3 deltaVel = velocity * 0.02;
+vec3 newPos = currData.xyz + deltaVel;
 
-int counter = 0;
+/* bounds check */
+if (newPos.x < -bounds.x)
+    newPos.x = -bounds.x;
+if (newPos.y < -bounds.y)
+    newPos.y = -bounds.y;
+if (newPos.z < -bounds.z)
+    newPos.z = -bounds.z;
+if (newPos.x > bounds.x)
+    newPos.x = bounds.x;
+if (newPos.y > bounds.y)
+    newPos.y = bounds.y;
+if (newPos.z > bounds.z)
+    newPos.z = bounds.z;
 
-vec4 otherParticle;
-float ro = 0.0;
-vec3 grad = vec3(0.0);
-float denom = 0.0;
-float lambda;
-
-for (int r = 0; r < 32; r++)
-{
-	for (int c = 0; c < 32; c++)
-	{
-		// keep track of number of particles
-		if (counter > texDims[0].z)
-			break;
-		counter += 1;
-		
-		if ( _x == c && _y == r )
-		{
-			continue;
-		}
-		
-		otherParticle = texture2D(textures[0], (vec2(c, r) + vec2(0.5)) / vec2(texDims[0]));
-
-
-        vec3 pos2 =  otherParticle.xyz;
-        
-        vec3 r = pos - pos2;
-        float rlen2 = dot(r, r);
-        float rlen = sqrt(rlen2);
-        float hMinus2 = H2 - rlen2;
-        float hMinus = H - rlen;
-
-        // do fluid solid scaling hurr
-        ro += (POLY6_COEFF * hMinus2*hMinus2*hMinus2 ) * m;
-
-        vec3 spikeyGrad;
-        if (rlen < 0.0001)
-            spikeyGrad = vec3(0.0); // randomize a little
-        else
-            spikeyGrad = (r / rlen) * -SPIKEY_COEFF * hMinus*hMinus;
-        spikeyGrad /= RO;
-
-        grad += -spikeyGrad;
-        denom += dot(spikeyGrad, spikeyGrad);
-
-	}
-	
-	if (counter > texDims[0].z)
-	    break;
-}
-
-ro += (POLY6_COEFF * H6 ) * m;
-denom += dot(grad, grad);
-
-lambda = - ((ro / RO) - 1.0) / (denom + FLUID_RELAXATION);
-		
-
-data = currData;
+data = vec4(newPos, currData.w);

@@ -19,7 +19,7 @@ uniform mat4 projectionMatrix;
 
  */
 
-uniform sampler2D uTexture;
+uniform sampler2D texture;
 uniform int texWidth;
 uniform int texHeight;
 
@@ -35,7 +35,7 @@ void main(void) {
 	tCoord += vec2(0.5);
 	tCoord *= 1.0 / texRes;
 
-	vec4 pos = texture2D(uTexture, tCoord);
+	vec4 pos = texture2D(texture, tCoord);
 
 	if (pos.w == 0.0)
 	{
