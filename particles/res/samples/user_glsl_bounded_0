@@ -1,6 +1,6 @@
 
 vec3 bounds = vec3(5,3,5);
-float damper = 0.95;
+float damper = 0.5;
 vec3 gravity = vec3(0, -9.8, 0);
 
 vec4 currData = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[0]));
@@ -13,16 +13,16 @@ vec3 newPos = currData.xyz + deltaVel;
 
 /* bounds check */
 if (newPos.x < -bounds.x)
-	newPos.x = -bounds.x * damper;
+	newPos.x = currData.x - deltaVel.x * damper;
 if (newPos.y < -bounds.y)
-	newPos.y = -bounds.y * damper;
+	newPos.y = currData.y - deltaVel.y * damper;
 if (newPos.z < -bounds.z)
-	newPos.z = -bounds.z * damper;
+	newPos.z = currData.z - deltaVel.z * damper;
 if (newPos.x > bounds.x)
-	newPos.x = bounds.x * damper;
+	newPos.x = currData.x - deltaVel.x * damper;
 if (newPos.y > bounds.y)
-	newPos.y = bounds.y * damper;
+	newPos.y = currData.y - deltaVel.y * damper;
 if (newPos.z > bounds.z)
-	newPos.z = bounds.z * damper;
+	newPos.z = currData.z - deltaVel.z * damper;
 
 data = vec4(newPos, currData.w);
