@@ -1,6 +1,6 @@
 
 const float EPS2 = 0.01;
-const float gravityConstant = 0.05;
+const float gravityConstant = 0.1;
 
 vec4 currData = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[0]));
 vec4 prevData = texture2D(textures[1], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[1]));
@@ -12,19 +12,16 @@ vec4 otherParticle;
 vec3 dir, force;
 float dist2, invDist;
 
-for (int r = 0; r < 32; r++)
+int r, c;
+int width = texDims[1].x;
+float widthf = float(width);
+
+for (int i = 0; i < 3000; ++i)
 {
-	for (int c = 0; c < 32; c++)
-	{
-		// keep track of number of particles
-		if (counter > texDims[0].z)
-			break;
-		counter += 1;
-		
-		if ( _x == c && _y == r )
-		{
-			continue;
-		}
+	if ( i != _index )
+    {
+        r = i / width;
+        c = int(mod(float(i), widthf));
 		
 		otherParticle = texture2D(textures[0], (vec2(c, r) + vec2(0.5)) / vec2(texDims[0]));
 	
@@ -45,9 +42,6 @@ for (int r = 0; r < 32; r++)
 		force += dir * (otherParticle.w * invDist);
 		
 	}
-	
-	if (counter > texDims[0].z)
-	    break;
 }
 
 // the 'G * m1' part of the above gravitational calculation

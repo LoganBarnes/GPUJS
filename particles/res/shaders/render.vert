@@ -47,6 +47,7 @@ void main(void) {
 
 	 // function of mass and density
 	float radius = pow((3.0 * pos.w) / (density * 4.0 * PI), 1.0 / 3.0);
+	radius = 0.25;
 
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xyz, 1.0);
 	gl_PointSize = float(screenHeight) * projectionMatrix[1][1] * radius / gl_Position.w;

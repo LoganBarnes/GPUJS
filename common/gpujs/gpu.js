@@ -23,6 +23,24 @@ uniform float fvars[ numVars ];\n\
 uniform bool swapX;\n\
 \n\
 \n\
+float randv(vec2 co)\n\
+{\n\
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);\
+}\
+\n\
+\n\
+float rand(float x, float y)\n\
+{\n\
+    return randv(vec2(x, y));\
+}\
+\n\
+\n\
+float randi(int x, int y)\n\
+{\n\
+    return randv(vec2(x, y));\
+}\
+\n\
+\n\
 vec4 user_FunctionMain(in int _x, in int _y, in int _index)\n\
 {\n\
 vec4 data = vec4(0.0);\n\
@@ -756,6 +774,31 @@ GPU.prototype.getSolverResultTexture = function(passName, passNum) {
 			return this.getPass(passName, passNum).resultRT.texture;
 
 		return this.getFinalPass(passName).resultRT.texture;
+	}
+	return null;
+};
+
+
+/**
+ * return texture object if passName exists, null otherwize
+ */
+GPU.prototype.getSolverTexture = function(passName, passNum, texNum) {
+	if (passNum === undefined || texNum === undefined) {
+		console.error("getSolverTexture() requires a passNum and texNum");
+	}
+
+	if (this.checkPassExists(passName))
+	{
+		if (this.getNumPasses(passName) <= passNum) {
+			console.error("getSolverTexture(): passNum is out of range");
+		}
+		var solverPass = this.getPass(passName, passNum);
+
+		if (solverPass.textures.length <= texNum) {
+			console.error("getSolverTexture(): texNum is out of range");
+		}
+
+		return solverPass.textures[texNum];
 	}
 	return null;
 };

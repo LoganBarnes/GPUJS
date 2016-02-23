@@ -1,10 +1,14 @@
 
 const float EPS = 0.001;
 
-const float H = 2.0;       // kernel radius
-const float H2 = 4.0;      // H^2
-const float POLY6_COEFF = 0.00305992474; // 315 / (64 * pi * H9)
-const float SPIKEY_COEFF = 0.22381163872; // 45 / (pi * H6)
+const float PI = 3.14159265358;
+
+const float H = 2.0;         // kernel radius
+const float H2 = H*H;        // H^2
+const float H6 = H2*H2*H2;   // H^6
+const float H9 = H6*H2*H;    // H^9
+const float POLY6_COEFF = 315.0 / (64.0 * PI * H9); // 315 / (64 * pi * H9)
+const float SPIKEY_COEFF = 45.0 / (PI * H6); // 45 / (pi * H6)
 
 const float K_P = 0.1;              // scales artificial pressure
 const float E_P = 4.0;              // exponent to art. pressure
@@ -21,24 +25,22 @@ int numNeighbors = 0;
 vec4 pos2 = vec4(1.0);
 float lambda2;
 
-for (int r = 0; r < 32; r++)
-{
-    for (int c = 0; c < 32; c++)
-    {
-        if (counter > texDims[1].z)
-            break;
-        counter++;
+int r, c;
+int width = texDims[1].x;
+float widthf = float(width);
 
-        if ( _x == c && _y == r )
-        {
-            continue;
-        }
-        
+for (int i = 0; i < 3000; ++i)
+{
+   if ( i != _index )
+    {
+        r = i / width;
+        c = int(mod(float(i), widthf));
+
         pos2 = texture2D(textures[0], (vec2(c, r) + vec2(0.5)) / vec2(texDims[0]));
         vec4 r = pos - pos2;
         float rlen2 = dot(r, r);
 
-        if (rlen2 < 2.0) 
+        if (rlen2 < H2) 
         {
             numNeighbors++;
         
@@ -62,13 +64,9 @@ for (int r = 0; r < 32; r++)
 
             delta += (lambda + lambda2 + lambdaCorr) * spikeyGrad;
         }
-        
     }
-    
-    if (counter > texDims[1].z)
-        break;
-}
+} // end for i
 
-data = pos + delta * 0.5 / (RO + float(numNeighbors));
-data.w = 1.0;
+pos.xyz += delta.xyz * 0.5 / (RO + float(numNeighbors));
+data = pos;
 

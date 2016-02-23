@@ -22,7 +22,7 @@ var ParticlesClass = function (canvasId) {
 
  	// create the GPU solver
  	this.canvas = document.getElementById("particles-canvas");
-	this.gpuSolver = new GPU(this.canvas.width, this.canvas.height, canvasId);
+	this.gpuSolver = new GPU(this.canvas.width, this.canvas.height, "#particles-canvas");
 
 	this.canvasId = canvasId;
 	this.oldDeltaTime = 0.02;
@@ -31,7 +31,7 @@ var ParticlesClass = function (canvasId) {
 	// camera and mouse functionality
 	this.anglePhi = 90;
 	this.angleTheta = 0;
-	this.zoomZ = 10;
+	this.zoomZ = 20;
 
 	this.lastMouseX;
 	this.lastMouseY;
@@ -51,6 +51,7 @@ var ParticlesClass = function (canvasId) {
 	document.onkeyup = this.handleKeyUp.bind(this);
 
 	this.paused = false;
+	this.paused = true;
 	this.lastTime = new Date().getTime() - 20;
 }
 
@@ -71,9 +72,9 @@ var ParticlesClass = function (canvasId) {
 
 ParticlesClass.prototype.init = function(renderShader) {
 	
-	var numParticles = 1000;
+	var numParticles = 3000;
 	this.oldDeltaTime = 0.02;
-	var radius = 2.5;
+	var radius = 7;
 	var velocity = 3;
 
 	var dist = velocity * this.oldDeltaTime;
@@ -101,6 +102,9 @@ ParticlesClass.prototype.init = function(renderShader) {
 			currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist * 2 - dist;
 			currInitialArray[index+3] = 1.0;
 		}
+
+		// prevInitialArray = new Float32Array([-.55,0,0,1,.55,0,0,1,0,.55,0,1,0,-.55,0,1,0,0,.55,1,0,0,-.55,1]);
+		// currInitialArray = new Float32Array([-.55,0,0,1,.55,0,0,1,0,.55,0,1,0,-.55,0,1,0,0,.55,1,0,0,-.55,1]);
 		
 		var passData = {
 			texData: [ {
@@ -135,7 +139,7 @@ ParticlesClass.prototype.init = function(renderShader) {
 	this.renderer = this.gpuSolver.getRenderer();
 
 	// get the solver texture and texture sizes
-	var resultTex = this.gpuSolver.getSolverResultTexture("solver");
+	var currTex = this.gpuSolver.getSolverTexture("solver", 0, 0);
 	var passWidth = this.gpuSolver.getSolverResultWidth("solver");
 	var passHeight = this.gpuSolver.getSolverResultHeight("solver");
 	var passSize = this.gpuSolver.getSolverResultSize("solver");
@@ -181,7 +185,7 @@ ParticlesClass.prototype.init = function(renderShader) {
 			new THREE.ShaderMaterial( {
 
 				uniforms: {
-					texture: { type: "t", value: resultTex },
+					texture: { type: "t", value: currTex },
 					texWidth: { type: "i", value: passWidth },
 					texHeight: { type: "i", value: passHeight },
 					screenHeight: { type: "i", value: particlesClass.canvas.height }
@@ -203,11 +207,15 @@ ParticlesClass.prototype.init = function(renderShader) {
 		// console.log(container.width);
 		// particlesClass.resize();
 		particlesClass.resize(550, 550);
+
+		if (particlesClass.paused)
+			particlesClass.render()
 	});
 }
 
 ParticlesClass.prototype.reset = function() {
 	this.gpuSolver.reinitialize("solver");
+		this.renderPoints.material.uniforms.texture.value = this.gpuSolver.getSolverTexture( "solver", 0, 0 );
 }
 
 
@@ -234,10 +242,12 @@ ParticlesClass.prototype.setShader = function(text, passNum) {
 
 ParticlesClass.prototype.addFluidPass = function() {
 	this.gpuSolver.connectPass("solver", {
-		texData: []
+		texData: [],
+		usePrevTextures: true
 	});
 	this.gpuSolver.connectPass("solver", {
-		texData: []
+		texData: [],
+		usePrevTextures: true
 	}, 2);
 };
 
@@ -284,19 +294,19 @@ ParticlesClass.prototype.handleMouseUp = function(mouseEvent) {
 ParticlesClass.prototype.handleMouseWheel = function(mouseEvent) {
 	mouseEvent.preventDefault(); // no page scrolling when using the canvas
 
-	if (this.moveCamera) {
+	// if (this.moveCamera) {
 		if (mouseEvent.deltaMode == 1) {
 			this.zoomZ += mouseEvent.deltaX * 0.3;
 		} else {
 			this.zoomZ += mouseEvent.deltaY * 0.03;
 		}
 		this.zoomZ = Math.max(0.001, this.zoomZ);
-	}
+	// }
 
 	this.updateCamera();
 
 	if (this.paused && this.rendererLoaded)
-		this.renderer.render( this.renderScene, this.camera );
+		this.render();
 }
 
 ParticlesClass.prototype.handleMouseMove = function(mouseEvent) {
@@ -310,12 +320,12 @@ ParticlesClass.prototype.handleMouseMove = function(mouseEvent) {
 	var deltaX = pos.x - this.lastMouseX;
 	var deltaY = pos.y - this.lastMouseY;
 
-	if (this.moveCamera) {
+	// if (this.moveCamera) {
 		this.anglePhi -= deltaY * 0.25;
 		this.angleTheta -= deltaX * 0.25;
 		this.anglePhi = Math.max(0.001, this.anglePhi);
 		this.anglePhi = Math.min(179.999, this.anglePhi);
-	}
+	// }
 
 	this.lastMouseX = pos.x
 	this.lastMouseY = pos.y;
@@ -323,7 +333,7 @@ ParticlesClass.prototype.handleMouseMove = function(mouseEvent) {
 	this.updateCamera();
 
 	if (this.paused && this.rendererLoaded)
-		this.renderer.render( this.renderScene, this.camera );
+		this.render();
 }
 
 /*
@@ -346,6 +356,11 @@ ParticlesClass.prototype.handleKeyDown = function(keyEvent) {
 			this.spaceDown = true;
 			// keyEvent.preventDefault();
 			break;
+		case 192: // `
+			if (this.paused) {
+				this.tick();
+			}
+			break;
 		default:
 			// console.log(keyEvent.keyCode);
 			break;
@@ -366,6 +381,11 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 			break;
 		case 32: // space
 			this.spaceDown = false;
+			break;
+		case 192: // `
+			// if (this.paused) {
+			// 	this.tick();
+			// }
 			break;
 		default:
 			// console.log(keyEvent.keyCode);
@@ -388,9 +408,15 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 8 8888     `88. 8 888888888888 8            `Yo 8 888888888P'      8 888888888888 8 8888     `88. 
 */
 
+ParticlesClass.prototype.render = function() {
+	this.renderer.render(this.renderScene, this.camera);
+};
+
 ParticlesClass.prototype.tick = function() {
 	if (!this.paused) {
 		requestAnimationFrame(this.tick.bind(this));
+	} else {
+		this.lastTime = new Date().getTime() - 20;
 	}
 
 	if (this.gpuSolver.isPassLoaded("solver") && this.rendererLoaded) {
@@ -403,10 +429,11 @@ ParticlesClass.prototype.tick = function() {
 
 		this.gpuSolver.rotateFVars("solver", deltaTime);
 		this.gpuSolver.runPass( "solver" );
-		this.renderer.render( this.renderScene, this.camera );
+		
+		this.renderPoints.material.uniforms.texture.value = this.gpuSolver.getSolverResultTexture( "solver" );
+		this.render();
 
 		this.gpuSolver.rotateSolverTargets("solver");
-		this.renderPoints.material.uniforms.texture.value = this.gpuSolver.getSolverResultTexture( "solver" );
 
 	} else {
 		this.lastTime = new Date().getTime() - 20;

@@ -1,5 +1,5 @@
 
-vec3 bounds = vec3(5,3,5);
+vec3 bounds = vec3(10, 9, 10);
 float damper = 0.5;
 vec3 gravity = vec3(0, -9.8, 0);
 

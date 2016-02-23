@@ -198,7 +198,10 @@ function resetSimulation() {
 
         loadShaders();
 
-        particlesClass.tick();
+        if (particlesClass.paused)
+            particlesClass.render();
+        else
+            particlesClass.tick();
     } else {
 
         particlesClass.reset();
@@ -212,7 +215,7 @@ function resetSimulation() {
         updateShaders();
         
         if (particlesClass.paused)
-            particlesClass.tick();
+            particlesClass.render();
     }
 }
 
