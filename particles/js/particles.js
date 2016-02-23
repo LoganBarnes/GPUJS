@@ -51,7 +51,7 @@ var ParticlesClass = function (canvasId) {
 	document.onkeyup = this.handleKeyUp.bind(this);
 
 	this.paused = false;
-	this.paused = true;
+	// this.paused = true;
 	this.lastTime = new Date().getTime() - 20;
 }
 
