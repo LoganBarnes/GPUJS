@@ -1,15 +1,11 @@
 
-int filterRadius = 5;
+const int filterRadius = 5;
 
-const int rStart = -5;
-const int rEnd = 5;
-for (int r = rStart; r <= rEnd; r++)
+for (int r = -filterRadius; r <= filterRadius; r++)
 {
 	int row = _y + r;
 
-	const int cStart = -5;
-	const int cEnd = 5;
-	for (int c = cStart; c <= cEnd; c++)
+	for (int c = -filterRadius; c <= filterRadius; c++)
 	{
 		int col = _x + c;
 

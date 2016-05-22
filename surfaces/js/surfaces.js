@@ -3,38 +3,28 @@ javascript:(function(){var script=document.createElement('script');script.onload
 
 
 /*
-                                                                                                                                      
-8 888888888o      .8.          8 888888888o. 8888888 8888888888  8 8888     ,o888888o.    8 8888         8 8888888888     d888888o.   
-8 8888    `88.   .888.         8 8888    `88.      8 8888        8 8888    8888     `88.  8 8888         8 8888         .`8888:' `88. 
-8 8888     `88  :88888.        8 8888     `88      8 8888        8 8888 ,8 8888       `8. 8 8888         8 8888         8.`8888.   Y8 
-8 8888     ,88 . `88888.       8 8888     ,88      8 8888        8 8888 88 8888           8 8888         8 8888         `8.`8888.     
-8 8888.   ,88'.8. `88888.      8 8888.   ,88'      8 8888        8 8888 88 8888           8 8888         8 888888888888  `8.`8888.    
-8 888888888P'.8`8. `88888.     8 888888888P'       8 8888        8 8888 88 8888           8 8888         8 8888           `8.`8888.   
-8 8888      .8' `8. `88888.    8 8888`8b           8 8888        8 8888 88 8888           8 8888         8 8888            `8.`8888.  
-8 8888     .8'   `8. `88888.   8 8888 `8b.         8 8888        8 8888 `8 8888       .8' 8 8888         8 8888        8b   `8.`8888. 
-8 8888    .888888888. `88888.  8 8888   `8b.       8 8888        8 8888    8888     ,88'  8 8888         8 8888        `8b.  ;8.`8888 
-8 8888   .8'       `8. `88888. 8 8888     `88.     8 8888        8 8888     `8888888P'    8 888888888888 8 888888888888 `Y8888P ,88P' 
+put big SURFACES text here
 */
 
 
-var ParticlesClass = function (canvasId) {
+var SurfaceClass = function (canvasId) {
 
 	/*
  	 * GPU SOLVER CODE
  	 */
 
  	// create the GPU solver
- 	this.canvas = document.getElementById("particles-canvas");
-	this.gpuSolver = new GPU(this.canvas.width, this.canvas.height, "#particles-canvas");
+ 	this.canvas = document.getElementById("surface-canvas");
+	this.gpuSolver = new GPU(this.canvas.width, this.canvas.height, "#surface-canvas");
 
 	this.canvasId = canvasId;
 	this.oldDeltaTime = 0.02;
 	this.deltaTime = 0.02;
 
 	// camera and mouse functionality
-	this.anglePhi = 90;
+	this.anglePhi = 60;
 	this.angleTheta = 0;
-	this.zoomZ = 20;
+	this.zoomZ = 50;
 
 	this.lastMouseX;
 	this.lastMouseY;
@@ -73,9 +63,17 @@ var ParticlesClass = function (canvasId) {
  8 8888   8            `Yo  8 8888       8 8888       
 */
 
-ParticlesClass.prototype.init = function(renderShader) {
+SurfaceClass.prototype.init = function(renderShader) {
 	
-	var numParticles = 3000;
+	var divisions     =  100;
+	var lowerLeft     = -30.0;
+	var upperRight    =  30.0;
+  var size          =  upperRight - lowerLeft;
+  var divDist       =  size / ( divisions + 1 );
+  var texDim        =  divisions + 2;
+
+	var numParticles  = texDim * texDim;
+
 	this.oldDeltaTime = 0.02;
 	var radius = 7;
 	var velocity = 3;
@@ -88,38 +86,44 @@ ParticlesClass.prototype.init = function(renderShader) {
 
 	this.gpuSolver.setInitialFunction("solver", function() {		
 
-		var prevInitialArray = new Float32Array(numParticles * 4);
-		for (var i = 0; i < numParticles; ++i) {
-			var index = i * 4;
-			prevInitialArray[index  ] = Math.random() * radius * 2.0 - radius;
-			prevInitialArray[index+1] = Math.random() * radius * 2.0 - radius;
-			prevInitialArray[index+2] = Math.random() * radius * 2.0 - radius;
-			prevInitialArray[index+3] = 1.0;
-		}
+		var currInitialArray = new Float32Array( numParticles * 4 );
 
-		var currInitialArray = new Float32Array(numParticles * 4);
-		for (var i = 0; i < numParticles; ++i) {
-			var index = i * 4;
-			currInitialArray[index  ] = prevInitialArray[index  ] + Math.random() * dist * 2 - dist;
-			currInitialArray[index+1] = prevInitialArray[index+1] + Math.random() * dist * 2 - dist;
-			currInitialArray[index+2] = prevInitialArray[index+2] + Math.random() * dist * 2 - dist;
-			currInitialArray[index+3] = 1.0;
-		}
+    var index = 0;
 
-		// prevInitialArray = new Float32Array([-.55,0,0,1,.55,0,0,1,0,.55,0,1,0,-.55,0,1,0,0,.55,1,0,0,-.55,1]);
-		// currInitialArray = new Float32Array([-.55,0,0,1,.55,0,0,1,0,.55,0,1,0,-.55,0,1,0,0,.55,1,0,0,-.55,1]);
+    for ( var z = 0; z < texDim; ++z ) {
+
+    	for ( var x = 0; x < texDim; ++x ) {
+
+    		currInitialArray[ index++ ] = lowerLeft + divDist * x;
+    		currInitialArray[ index++ ] = 0.0;
+    		currInitialArray[ index++ ] = lowerLeft + divDist * z;
+    		currInitialArray[ index++ ] = 1.0;
+
+    	}
+
+    }
+
+    currInitialArray[ 1 ] = 10.0;
+    currInitialArray[ texDim * 4 - 3] = 20.0;
+
 		
 		var passData = {
 			texData: [ {
-				texInput: currInitialArray,
+				texInput:  currInitialArray,
+				width:     texDim,
+				height:    texDim,
 				inputType: InputType.ROTATING
 			},
 			{
-				texInput: prevInitialArray,
+				texInput:  currInitialArray,
+				width:     texDim,
+				height:    texDim,
 				inputType: InputType.ROTATING
 			} ],
-			fvars: [oldDeltaTime, oldDeltaTime],
-			outputSize: numParticles
+			fvars:        [oldDeltaTime, oldDeltaTime],
+			outputWidth:  texDim,
+			outputHeight: texDim,
+			outputSize:   numParticles
 		};
  
 		return passData;
@@ -156,12 +160,12 @@ ParticlesClass.prototype.init = function(renderShader) {
 	 */
 
 	// create a camera and a new scene
-	this.camera = new THREE.PerspectiveCamera( 75, this.canvas.width / this.canvas.height, 0.1, 1000 );
+	this.camera = new THREE.PerspectiveCamera( 75, this.canvas.width / this.canvas.height, 0.1, 5000 );
 	this.renderScene = new THREE.Scene();
 	this.rendererLoaded = false;
 
 	// for use in async method
-	var particlesClass = this;
+	var surfaceClass = this;
 
 	loadFiles(["res/shaders/render.vert", renderShader], function (shaderText) {
 
@@ -181,7 +185,7 @@ ParticlesClass.prototype.init = function(renderShader) {
 		geometry.drawRange.count = numParticles;
 
 		// create sovler program
-		particlesClass.renderPoints = new THREE.Points(
+		surfaceClass.renderPoints = new THREE.Points(
 
 			geometry,
 
@@ -191,7 +195,7 @@ ParticlesClass.prototype.init = function(renderShader) {
 					texture: { type: "t", value: currTex },
 					texWidth: { type: "i", value: passWidth },
 					texHeight: { type: "i", value: passHeight },
-					screenHeight: { type: "i", value: particlesClass.canvas.height }
+					screenHeight: { type: "i", value: surfaceClass.canvas.height }
 				},
 				vertexShader: shaderText[0],
 				fragmentShader: shaderText[1]
@@ -199,30 +203,30 @@ ParticlesClass.prototype.init = function(renderShader) {
 
 		);
 
-		particlesClass.renderScene.add( particlesClass.renderPoints );
+		surfaceClass.renderScene.add( surfaceClass.renderPoints );
 
-		particlesClass.updateCamera();
+		surfaceClass.updateCamera();
 
-		particlesClass.rendererLoaded = true;
+		surfaceClass.rendererLoaded = true;
 
 		// var container = document.getElementById("canvas-container");
-		// // particlesClass.resize(container.width, container.height);
+		// // surfaceClass.resize(container.width, container.height);
 		// console.log(container.width);
-		// particlesClass.resize();
-		particlesClass.resize(550, 550);
+		// surfaceClass.resize();
+		surfaceClass.resize(550, 550);
 
-		if (particlesClass.paused)
-			particlesClass.render()
+		if (surfaceClass.paused)
+			surfaceClass.render()
 	});
 }
 
-ParticlesClass.prototype.reset = function() {
+SurfaceClass.prototype.reset = function() {
 	this.gpuSolver.reinitialize("solver");
 	this.renderPoints.material.uniforms.texture.value = this.gpuSolver.getSolverTexture( "solver", 0, 0 );
 }
 
 
-ParticlesClass.prototype.setShader = function(text, passNum) {
+SurfaceClass.prototype.setShader = function(text, passNum) {
 	var errors = this.gpuSolver.compileShaderText("solver", passNum, text);
 	var annotations = [];
 
@@ -243,7 +247,7 @@ ParticlesClass.prototype.setShader = function(text, passNum) {
 }
 
 
-ParticlesClass.prototype.addFluidPass = function() {
+SurfaceClass.prototype.addFluidPass = function() {
 	this.gpuSolver.connectPass("solver", {
 		texData: [],
 		usePrevTextures: true
@@ -256,7 +260,7 @@ ParticlesClass.prototype.addFluidPass = function() {
 
 
 
-ParticlesClass.prototype.removeFluidPass = function() {
+SurfaceClass.prototype.removeFluidPass = function() {
 	if (this.gpuSolver.getNumPasses("solver") > 0) {
 		this.gpuSolver.disconnectPass("solver", 1);
 	}
@@ -282,18 +286,18 @@ ParticlesClass.prototype.removeFluidPass = function() {
  * Mouse Events
  */
 
-ParticlesClass.prototype.handleMouseDown = function(mouseEvent) {
+SurfaceClass.prototype.handleMouseDown = function(mouseEvent) {
 	this.mouseDown = true;
 	var pos = this.getMousePos(mouseEvent);
 	this.lastMouseX = pos.x;
 	this.lastMouseY = pos.y;
 }
 
-ParticlesClass.prototype.handleMouseUp = function(mouseEvent) {
+SurfaceClass.prototype.handleMouseUp = function(mouseEvent) {
 	this.mouseDown = false;
 }
 
-ParticlesClass.prototype.handleMouseWheel = function(mouseEvent) {
+SurfaceClass.prototype.handleMouseWheel = function(mouseEvent) {
 	mouseEvent.preventDefault(); // no page scrolling when using the canvas
 
 	// if (this.moveCamera) {
@@ -311,7 +315,7 @@ ParticlesClass.prototype.handleMouseWheel = function(mouseEvent) {
 		this.render();
 }
 
-ParticlesClass.prototype.handleMouseMove = function(mouseEvent) {
+SurfaceClass.prototype.handleMouseMove = function(mouseEvent) {
 	
 	if (!this.mouseDown)
 		return;
@@ -342,7 +346,7 @@ ParticlesClass.prototype.handleMouseMove = function(mouseEvent) {
  * Key Events
  */
 
-ParticlesClass.prototype.handleKeyDown = function(keyEvent) {
+SurfaceClass.prototype.handleKeyDown = function(keyEvent) {
 	// this.currentlyPressedKeys[keyEvent.keyCode] = true;
 	switch(keyEvent.keyCode) {
 		// CMD key (MAC)
@@ -369,7 +373,7 @@ ParticlesClass.prototype.handleKeyDown = function(keyEvent) {
 	}
 }
 
-ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
+SurfaceClass.prototype.handleKeyUp = function(keyEvent) {
 	// this.currentlyPressedKeys[keyEvent.keyCode] = false;
 	switch(keyEvent.keyCode) {
 		// CMD key (MAC)
@@ -410,11 +414,11 @@ ParticlesClass.prototype.handleKeyUp = function(keyEvent) {
 8 8888     `88. 8 888888888888 8            `Yo 8 888888888P'      8 888888888888 8 8888     `88. 
 */
 
-ParticlesClass.prototype.render = function() {
+SurfaceClass.prototype.render = function() {
 	this.renderer.render(this.renderScene, this.camera);
 };
 
-ParticlesClass.prototype.tick = function() {
+SurfaceClass.prototype.tick = function() {
 	if (!this.paused) {
 		requestAnimationFrame(this.tick.bind(this));
 	} else {
@@ -443,7 +447,7 @@ ParticlesClass.prototype.tick = function() {
 }
 
 
-ParticlesClass.prototype.updateCamera = function() {
+SurfaceClass.prototype.updateCamera = function() {
 	var phi = degToRad(this.anglePhi);
 	var theta = degToRad(this.angleTheta);
 
@@ -457,7 +461,7 @@ ParticlesClass.prototype.updateCamera = function() {
 /*
  * Updates the canvas, viewport, and camera based on the new dimensions.
  */
-ParticlesClass.prototype.resize = function(canvasContainerWidth, canvasContainerHeight) {
+SurfaceClass.prototype.resize = function(canvasContainerWidth, canvasContainerHeight) {
 	this.canvas.width = canvasContainerWidth * 0.9;
 	this.canvas.height = canvasContainerHeight * 0.8;
 
@@ -486,7 +490,7 @@ ParticlesClass.prototype.resize = function(canvasContainerWidth, canvasContainer
 /*
  * Returns the mouse position relative to the canvas
  */
-ParticlesClass.prototype.getMousePos = function(evt) {
+SurfaceClass.prototype.getMousePos = function(evt) {
 	var rect = this.canvas.getBoundingClientRect();
 	return {
 		x: evt.clientX - rect.left,
@@ -509,7 +513,7 @@ ParticlesClass.prototype.getMousePos = function(evt) {
 ,8'         `         `8.`8888. .8'       `8. `88888.  8 8888     8            `Yo 
 */
 
-var particlesClass = null;
+var surfaceClass = null;
 
 
 

@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta charset="utf-8">
-        <title>Filters</title>
+        <title>Surfaces</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -12,7 +12,7 @@
 
         <link rel="stylesheet" href="/gpu.js/common/css/normalize.min.css">
         <link rel="stylesheet" href="/gpu.js/common/css/main.css">
-        <link rel="stylesheet" href="css/filters.css">
+        <link rel="stylesheet" href="css/surfaces.css">
 
     </head>
 
@@ -20,12 +20,12 @@
 
         <div class="header-container">
             <header class="wrapper clearfix">
-                <h1 class="title">GPU.js Filters</h1>
+                <h1 class="title">GPU.js Surfaces</h1>
                 <nav>
                     <ul>
                         <li><a href="/gpu.js/index.html">Home</a></li>
+                        <li><a href="/gpu.js/filters">Filters</a></li>
                         <li><a href="/gpu.js/particles">Particles</a></li>
-                        <li><a href="/gpu.js/surfaces">Surfaces</a></li>
                     </ul>
                 </nav>
             </header>
@@ -35,7 +35,7 @@
 
             <div class="main wrapper clearfix">
 
-                <h2>Filters Page</h2>
+                <h2>Surfaces Page</h2>
 
                 <section>
 
@@ -47,7 +47,7 @@
                         <button id="start-stop-button">Pause</button>
                     </div>
 
-                    <canvas id="filters-canvas" width="500px" height="500px">
+                    <canvas id="surface-canvas" width="500px" height="500px">
                     </canvas>
                 </div>
 
@@ -57,44 +57,48 @@
                     <h3 class="inline">Enter Code Here</h3>
 
                     <div class="inline float-right">
-                        <select id="sample-selection">
-                            <option value="default" selected>Default</option>
-                            <option value="grayscale">Grayscale</option>
-                            <option value="blur">Blur</option>
-                            <option value="edges">Edges</option>
-                        </select>
+
+                    <select id="sample-selection">
+                        <option value="default" selected>Default</option>
+                        <option value="fluid">Fluid</option>
+                    </select>
+
                         <button id="reset-button">Reset</button>
                         <button id="submit-button">Submit</button>
                         <input type="checkbox" id="realtime-checkbox" title="realtime submissions" checked>
                     </div>
 
-                    <div class="tab-container">
-                        <ul class="tabs">
-                            <li class="tab-link current" data-tab="tab-1">Pass One</li>
+                    <div id='tab-div' class="tab-container">
+                        <ul id="tab-list" class="tabs">
+                            <li id="tab-1" class="tab-link tabs current" data-tab="tab-div1">Pass 1</li>
+                            <!-- <li class="tab-link" data-tab="tab-2">Pass 2</li> -->
+                            <li id="tab-add" class="tab-link" data-tab="tab-add">+</li>
                         </ul>
 
-                        <div id="tab-1" class="tab-content current">
+                        <div id="tab-div1" class="tab-content current">
                             <!-- uneditable code goes here -->
 
                             <!-- Text editor for user input of code -->
-                            <pre id="filters-editor"></pre>
+                            <pre id="surface-editor-pass1" class="editor"></pre>
 
                             <!-- uneditable code goes here -->
-                        </div>                       
+                        </div> 
+
+                       <!--  <div id="tab-2" class="tab-content current">
+                            <pre id="surface-editor-pass2" class="editor"></pre>
+                        </div>  -->
+                       
+
+
                     </div>
 
                 </div>
 
                 </section>
-    
-                <video id="video">
-                    Not sure where to put this yet
-                </video>
                 
             </div> <!-- #main -->
 
         </div> <!-- #main-container -->
-
 
         <div class="footer-container">
             <footer class="wrapper">
@@ -122,10 +126,15 @@
             loadScripts([   "/gpu.js/common/thirdparty/util.min.js",
                             "/gpu.js/common/thirdparty/three.min.js",
                             "/gpu.js/common/gpujs/gpu.js",
-                            "js/filters.js",
+                            "js/surfaces.js",
                             "js/main.js"],
                 function() {
 
+                    // var userSolver = "res/shaders/bouncers.frag";
+                    // var userRenderer = "res/shaders/render.frag";
+                    // particlesClass = new ParticlesClass(userSolver, userRenderer, "#particles-canvas");
+
+                    // particlesClass.tick();
                 });
         </script>
 

@@ -1,0 +1,2 @@
+
+data = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[0]));

@@ -94,7 +94,8 @@ var InputType = Object.freeze({
 	IMG_VID: 			1,
 	ARRAY: 				2,
 	DATA: 				3,
-	NUM_INPUT_TYPES: 	4
+	ROTATING: 			4,
+	NUM_INPUT_TYPES: 	5
 
 });
 
@@ -228,8 +229,8 @@ GPU.prototype.disconnectPass = function(passName, passNum) {
 	// TODO: connect pass after with pass before
 	// prevPass.next = pass.next;
 	if (this.checkPassExists(passName)) {
-		if (passNum < 1)
-			this.passes[passName] = null;
+		if (passNum === undefined || passNum < 1)
+			delete this.passes[passName];
 		else
 			this.getPass(passName, passNum - 1).nextPass = null;
 	}
