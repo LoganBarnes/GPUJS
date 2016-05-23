@@ -1,58 +1,59 @@
 precision highp float;
 precision highp int;
-
-// void main(void) {
-//     gl_Position = vec4(position.xy, 0.0, 1.0);
-// }
  
-const float PI = 3.14159265359;
-const float density = 100.0;
- 
- /*
-  * DEFAULT
+/*
+ * DEFAULT
  
 attribute vec3 position;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
  
-  */
- 
+ */
+
 uniform sampler2D texture;
-uniform int texWidth;
-uniform int texHeight;
+uniform float     divDist;
 
-uniform int screenHeight;
+varying vec3 norm;
 
-varying float vUseParticle;
- 
-void main(void) {
 
-       vec2 texRes = vec2(texWidth, texHeight);
+void main( void ) {
 
-       vec2 tCoord = vec2(mod(position.x, texRes.x), floor(position.x / texRes.y));
-       tCoord += vec2(0.5);
-       tCoord *= 1.0 / texRes;
- 
-       vec4 pos = texture2D(texture, tCoord);
-       if (pos.w == 0.0)
-       {
-               vUseParticle = 0.0;
-               gl_Position = vec4(0.0);
-               return;
-       }
-       vUseParticle = 1.0;
- 
-        // function of mass and density
-       float radius = pow((3.0 * pos.w) / (density * 4.0 * PI), 1.0 / 3.0);
-       radius = 0.25;
- 
-       gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xyz, 1.0);
-       gl_PointSize = float(screenHeight) * projectionMatrix[1][1] * radius / gl_Position.w;
- 
-       // gl_Position = vec4(position, 1.0);
- 
-       // gl_Position = projectionMatrix * modelViewMatrix * vec4(0, 0, 0, 1);
-       // gl_PointSize = 100.0;
-       // vUseParticle = 1.0;
+  vec4 pos    = texture2D( texture, position.xy );
+
+  // vec4 adjPosR = texture2D( texture, position.xy + vec2( divDist, 0.0 ) ); // x+1
+  // vec4 adjPosL = texture2D( texture, position.xy - vec2( divDist, 0.0 ) ); // x-1
+  // vec4 adjPosU = texture2D( texture, position.xy + vec2( 0.0, divDist ) ); // y+1
+  // vec4 adjPosD = texture2D( texture, position.xy - vec2( 0.0, divDist ) ); // y-1
+
+  // vec3 tang;
+  // norm = vec3( 0.0 );
+  // int totalNorms = 0;
+
+  // //
+  // // no checking for edges because this is faster
+  // // and edge errors will barely be noticable
+  // //
+  // tang = adjPosR.xyz - pos.xyz;
+  // norm += normalize( vec3( -tang.y, tang.x, 0.0 ) );
+  // totalNorms += 1;
+
+  // tang = adjPosL.xyz - pos.xyz;
+  // norm += normalize( vec3( tang.y, -tang.x, 0.0 ) );
+  // totalNorms += 1;
+
+  // tang = adjPosU.xyz - pos.xyz;
+  // norm += normalize( vec3( 0.0, tang.z, -tang.y ) );
+  // totalNorms += 1;
+
+  // tang = adjPosD.xyz - pos.xyz;
+  // norm += normalize( vec3( 0.0, -tang.z, tang.y ) );
+  // totalNorms += 1;
+
+  // norm /= float( totalNorms );
+
+  // norm = position;
+
+  gl_Position = projectionMatrix * modelViewMatrix * pos;
+
 }

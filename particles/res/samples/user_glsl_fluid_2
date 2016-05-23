@@ -12,7 +12,7 @@ const float SPIKEY_COEFF = 45.0 / (PI * H6); // 45 / (pi * H6)
 
 const float K_P = 0.1;              // scales artificial pressure
 const float E_P = 4.0;              // exponent to art. pressure
-const float DQ_P = 0.2;             // between .1 and .3 (for art pressure)
+const float DQ_P = 0.6;             // between .1 and .3 (for art pressure)
 
 const float RO = 1.0;
 

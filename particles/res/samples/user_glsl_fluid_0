@@ -1,7 +1,7 @@
 
 const float EPS = 0.05;
 
-vec3 bounds = vec3(5);
+vec3 bounds = vec3( 9, 5, 3 );
 float damper = 0.5;
 vec3 gravity = vec3(0.0, -9.8, 0.0);
 

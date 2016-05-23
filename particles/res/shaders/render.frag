@@ -1,19 +1,8 @@
 precision highp float;
 precision highp int;
 
-// uniform sampler2D tex;
-// uniform vec2 texResolution;
-
-// void main(void)
-// {
-// 	int threadX = int(floor(gl_FragCoord.x));
-// 	int threadY = int(floor(gl_FragCoord.y));
-
-// 	gl_FragColor = texture2D(tex, (vec2(threadX, threadY) + vec2(0.5)) / texResolution);
-// 	gl_FragColor.w = 1.0;
-// }
-
 const vec3 lightDirection = vec3(1, -1, -1);
+const vec3 defaultColor   = vec3(0.5, 0.9, 0.5);
 
 /*
  * DEFAULT
@@ -43,8 +32,8 @@ void main()
 
 	// calculate lighting
 	vec3 diffuse = vec3(max(0.0, dot(lightDir, N)));
-	vec3 shadingColor = diffuse + vec3(.3); // plus ambient
+	vec3 shadingColor = diffuse + vec3(0.3); // plus ambient
 
-	gl_FragColor = vec4(shadingColor, 1.0);
+	gl_FragColor = vec4( shadingColor * defaultColor, 1.0 );
 	// gl_FragColor = vec4(1);
 }

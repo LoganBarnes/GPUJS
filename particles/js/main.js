@@ -11,10 +11,6 @@ $(function() {
     // Load first editor (since there is always at least one)
     createEditor(0); // index 0
 
-    // if (selector.options[selector.selectedIndex].value == "fluid") {
-    //     setNumEditors(fluidPasses);
-    // }
-
     $('ul.tabs').on("click", ".tab-link", clickFunction);
 
     resetSimulation();

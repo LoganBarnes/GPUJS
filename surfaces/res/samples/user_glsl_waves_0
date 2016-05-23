@@ -10,9 +10,9 @@ float xm1_y_t1 = texture2D(textures[0], (vec2(_x-1,  _y ) + vec2(0.5)) / vec2(te
 float x_yp1_t1 = texture2D(textures[0], (vec2( _x,  _y+1) + vec2(0.5)) / vec2(texDims[0])).y * 10.0;
 float x_ym1_t1 = texture2D(textures[0], (vec2( _x,  _y-1) + vec2(0.5)) / vec2(texDims[0])).y * 10.0;
 
+// discrete wave equation
 float sum = xp1_y_t1 + xm1_y_t1 + x_yp1_t1 + x_ym1_t1 - 4.0 * x_y_t1;
-
 float x_y_t2 = 2.0 * x_y_t1 - x_y_t0 + c * c * sum * 0.25;
 
 data = currData;
-data.y = x_y_t2 * 0.0995;
+data.y = x_y_t2 * 0.0997;
