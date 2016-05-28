@@ -1,3 +1,33 @@
 
+//
+//
+// HOLD SHIFT AND CLICK THE SURFACE
+// TO INTERACT WITH IT.
+//
+//
+
+const float PI = 3.1415926535;
+
+
 data = texture2D(textures[0], (vec2(_x, _y) + vec2(0.5)) / vec2(texDims[0]));
+
+
+float gaussHeight = 0.0;
+
+// mouse position on plane
+if ( fvars[ 2 ] > 0.5 )
+{
+  vec2  mp = vec2( fvars[ 0 ], fvars[ 1 ] );
+  float x = data.x - mp.x;
+  float y = data.z - mp.y;
+  float stdDev = 3.0;
+  gaussHeight = 1.0 / ( 2.0 * PI * stdDev * stdDev );
+  gaussHeight *= exp( -( x * x + y * y ) / ( 2.0 * stdDev * stdDev ) );
+}
+
+
+if ( gaussHeight > 0.00001 )
+{
+  data.y = gaussHeight * 500.0;
+}
 

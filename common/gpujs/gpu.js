@@ -626,7 +626,7 @@ GPU.prototype.compileShaderText = function(passName, passNum, text) {
 			console.error(passName + " " + passNum + " is null");
 
 		var shaderText = "precision highp float;\nprecision highp int;\n\n"
-						+ "const int numTex = " + Math.max(1, solverPass.textures.length) + ";\n"
+						+ "const int numTex  = " + Math.max(1, solverPass.textures.length) + ";\n"
 						+ "const int numVars = " + Math.max(1, solverPass.fvars.length) + ";\n"
 						+ fragTopString;
 
@@ -917,6 +917,30 @@ GPU.prototype.setUpdateTexture = function(passName, passNum, texNum) {
 	}
 	return false;
 }
+
+
+GPU.prototype.setFVars = function(passName, vars) {
+	
+	if (this.checkPassExists(passName))
+	{
+		var solverPass = this.getPass(passName, 0);
+
+			while (solverPass)
+			{
+				numFVars = solverPass.fvars.length;
+
+				for (var i = 0; i < numFVars; ++i) {
+					solverPass.fvars[i] = vars[ i ];
+				}
+				
+				// solverPass.fvars = vars;
+				solverPass = solverPass.next;
+
+			}
+
+	}
+	
+};
 
 
 /**
